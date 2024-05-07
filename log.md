@@ -21,4 +21,3 @@ queue.
 - key press handler
 - velocity indicator (median over last n presses? how many in the last minute?
   means and median over the presses in the last minute?)
-

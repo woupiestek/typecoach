@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "description": "alternative blind typing exercises",
   "main": "index.html",
+  "type": "module",
   "scripts": {
     "test": "wct",
     "start": "es-dev-server --app-index index.html --node-resolve --watch --open"
