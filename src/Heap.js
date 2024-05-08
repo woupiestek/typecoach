@@ -1,6 +1,7 @@
 /** @typedef {null|{prio: number, head: unknown, tail: Heap[]}} Node */
 
 export class Heap {
+  #size = 0;
   /** @type {Node} */
   #node = null;
   /**
@@ -19,20 +20,32 @@ export class Heap {
       return a;
     }
   }
-  findMin() {
+  head() {
     return this.#node?.head;
   }
-  insert(prio, head) {
-    this.#node = Heap.#merge(this.#node, { prio, head, tail: [] });
+  add(prio, head) {
+    this.#node = Heap.#merge(this.#node, { prio, head: head, tail: [] });
+    this.#size++;
   }
-  deleteMin() {
+  updatePrio(delta) {
     if (!this.#node) {
       return;
     }
-    const { tail } = this.#node;
-    const l = tail.length;
+    this.add(this.#node.prio + delta, this.#node.head);
+    this.pop();
+  }
+  pop() {
+    if (!this.#node) {
+      return;
+    }
+    const { head, tail } = this.#node;
     let node = null;
-    if (l === 0) return;
+    const l = tail.length;
+    if (l === 0) {
+      this.#node = null;
+      this.#size = 0;
+      return head;
+    }
     let i = 1;
     if (l % 2 === 1) {
       node = tail[0];
@@ -40,8 +53,13 @@ export class Heap {
     }
     for (; i < l; i += 2) {
       // reverse the order here, so older element have a change to get up front
-      node = Heap.#merge(Heap.#merge(tail[i], tail[i - 1]), node);
+      node = Heap.#merge(node, Heap.#merge(tail[i - 1], tail[i]));
     }
     this.#node = node;
+    this.#size--;
+    return head;
+  }
+  size() {
+    return this.#size;
   }
 }

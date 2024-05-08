@@ -1,5 +1,20 @@
 # TypeCoach
 
+## 2024-05-08
+
+### todo
+
+- ~~scoring mechanism~~
+- scoring persistence...
+- ~~key press handler~~
+- ~~velocity indicator~~
+- priority queue tests
+
+### accumulate errors
+
+So how should this work? count the number of times you mistype? Decrement the
+penalty by one on each test, but increment with each error.
+
 ## 2024-05-06
 
 Help with blind typing. Alternative exercises to what is ordinarily offered. To
