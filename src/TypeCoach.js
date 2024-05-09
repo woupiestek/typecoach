@@ -1,8 +1,14 @@
 import { css, html, LitElement } from "lit";
 import { Heap } from "./Heap";
 
-const testSet =
-  "qwertyuiop[]QWERTYUIOP{}asdfghjkl;'ASDFGHJKL:\"zxcvbnm,./ZXCVBNM<>?";
+function shuffle(array) {
+  for (let i = array.length - 1; i > 0; i--) {
+    const j = ((i + 1) * Math.random()) | 0;
+    const char = array[i];
+    array[i] = array[j];
+    array[j] = char;
+  }
+}
 
 class RunningMedian {
   #lower = new Heap();
@@ -35,81 +41,92 @@ class RunningMedian {
 
 export class TypeCoach extends LitElement {
   static properties = {
-    current: { type: Object },
+    current: { type: Array },
+    offset: { type: Number },
     median: { type: Number },
   };
 
   static styles = [
     css`
       .font {
-        font-size: 48px;
-        font-weight: bold;
-        font-family: serif;
       }
       .main {
         cursor: pointer;
+        font-size: 2em;
+        font-weight: bold;
+        font-family: serif;
+        border: 2px solid black;
+        border-radius: 5px;
+        width: 640px;
+        margin: auto;
+        text-align: center;
       }
-      .main:focus {
-        background: #ffddff;
+      .main:focus > span[underline] {
+        animation: blinker 1s linear infinite;
+      }
+      @keyframes blinker {
+        50% {
+          opacity: 0;
+        }
       }
     `,
   ];
 
   constructor() {
     super();
+    this.current = Array.from(
+      "\"',./:;<>?ABCDEFGHIJKLMNOPQRSTUVWXYZ[]abcdefghijklmnopqrstuvwxyz{}",
+    );
+    shuffle(this.current);
+    this.offset = 0;
+    this.__errors = 0;
+    this.__done = [];
     this.median = 0;
-    this.__items = [];
-    this.__codes = new Heap();
-    for (let i = 0, l = testSet.length; i < l; i++) {
-      this.__items[i] = {
-        code: testSet.charCodeAt(i),
-        score: 0,
-      };
-      this.__codes.add(Math.random() * .1, this.__items[i]);
-    }
-    this.current = this.__codes.head();
     this.__timeStamp = 0;
     this.__median = new RunningMedian();
-    this.__hardCaseThreshold = 0;
   }
 
   #onKey(e) {
-    if (this.current.code === e.charCode) {
-      this.current.score++;
-      this.__codes.updatePrio(-(2 ** this.current.score));
-      this.current = this.__codes.head();
-      // store correct presses per minute
-      this.__median.add(12e4 / (e.timeStamp - this.__timeStamp));
-      this.__timeStamp = e.timeStamp;
-      this.median = this.__median.get();
-
-      // there is a smarter way
-      if (this.__items.every((it) => it.score > this.__hardCaseThreshold)) {
-        this.__hardCaseThreshold++;
-      }
-    } else {
-      this.current.score--;
+    if (this.current[this.offset].charCodeAt(0) !== e.charCode) {
+      this.__errors++;
+      return;
     }
+    const diff = e.timeStamp - this.__timeStamp;
+    this.__errors += (diff / 400) | 0;
+    // store correct presses per minute
+    this.__median.add(12e4 / diff);
+    this.__timeStamp = e.timeStamp;
+    this.median = this.__median.get();
+
+    (this.__done[this.__errors] ||= []).push(this.current[this.offset]);
+    this.__errors = 0;
+    this.offset++;
+    if (this.offset < this.current.length) {
+      return;
+    }
+
+    do {
+      this.current = this.__done.pop();
+    } while (this.current === undefined);
+    shuffle(this.current);
+    this.offset = 0;
   }
 
   render() {
     return html`
-      <h1>
-        Next symbol:
-        <span class="main" tabindex="0" @keypress="${this.#onKey}">
-          ${String.fromCharCode(this.current.code)}
-  </span>
-      </h1>
-      Around ${this.median} successes per minute.
-      <h1>Level ${this.__hardCaseThreshold} hard cases</h1>
-      ${
-      this.__items.map(
-        (it) =>
-          html`<span ?hidden="${it.score > this.__hardCaseThreshold}"
-            >${String.fromCharCode(it.code)}</span
-          >`,
+      <div autofocus class="main" @keypress="${this.#onKey}" tabindex="0">
+        ${
+      this.current.map(
+        (it, idx) =>
+          html`
+            <span ?underline="${idx === this.offset}">${it}</span>
+          `,
       )
     }
+      </div>
+      Around ${this.median} successes per minute.
+      <h1>Done</h1>
+      ${this.__done.map((row) => html`<p>${row}</p>`)}
     `;
   }
 }

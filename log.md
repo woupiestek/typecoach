@@ -1,5 +1,14 @@
 # TypeCoach
 
+## 2024-05-09
+
+### todo
+
+- tests
+- scoring persistence
+
+### alternatives
+
 ## 2024-05-08
 
 ### todo
