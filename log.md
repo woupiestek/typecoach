@@ -1,15 +1,52 @@
 # TypeCoach
 
+## 2026-07-21
+
+Genetic algorithm. Generate strings that get one error in them, in order to
+gradually improve difficulty. The exact process of breaking up, mixing,
+mutating, etc. still leaves a lot of options open.
+
+I cannot move myself again because I am unsure what I want. The problem with the
+flash card idea, however promising it is, is that there are too many sequences
+of characters to type. How do you concentrate on certain features?
+
+- different format: shorter exercises, but any fail means trying again from
+  start
+- fitness: could have 2 kinds of fitness, i.e. after generation strings, they
+  are checked for suitability based on for example, the character classes, how
+  often and where they occur relative to each other. Select for normalcy. The
+  second fitness is after the exercise: both too difficult and too easy should
+  be avoided. Could be done for individual characters as well.
+
+Yes, first select based on whether the strings look normal enough, based on
+frequency of upper and lower case. Offer the string for an exercise: no mistakes
+means death, otherwise every mistake diminishes the change of contributing to
+future generations.
+
+### fine graining
+
+Take the word list, randomly select wordt and join togther with strings. Idea:
+the DNA is just the indices into the big array.
+
+Starting point: 40 word strings?
+
+Maybe don't start with the genetic thing just yet, just a string generator.
+
+DNA could be more complicated, i.e. parameters like how many words as metagenes.
+Faster selection for how many words.
+
+Intorduce paragraphs separated with retruns...
+
 ## 2020-06-23
 
-Current situation: accuracy is dgishit and not nitceabky improving. Slowing
-myself down is too painful: I get angry, and my accuracy merely decreases.
+Current situation: accuracy is dogshit and not noticeably improving. Slowing
+myself down is painful: I get angry, and my accuracy merely decreases.
 
 Ideas?
 
 - work with a vocabulary
 - capitals, spaces and interpunction: not sure if those variations should be
-  treated as seprate words, or as variant of one word
+  treated as separate words, or as variant of one word
 - every time a mistake is made, return to the start of a word with a loud noise,
   force repetititon of entire words
 - count the rehearsals required for scoring

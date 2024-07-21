@@ -1,5 +1,6 @@
 import { css, html, LitElement } from "lit";
 import { Heap } from "./Heap";
+import { words } from "../nwt2";
 
 function shuffle(array) {
   for (let i = array.length - 1; i > 0; i--) {
@@ -8,6 +9,16 @@ function shuffle(array) {
     array[i] = array[j];
     array[j] = char;
   }
+}
+
+function sample(array) {
+  return array[(array.length * Math.random()) | 0];
+}
+
+function generate() {
+  return Array.from({ length: WORDS_PER_EXERCISE })
+    .map((_) => sample(words))
+    .join(" ");
 }
 
 class RunningMedian {
@@ -39,6 +50,8 @@ class RunningMedian {
   }
 }
 
+const WORDS_PER_EXERCISE = 40;
+
 export class TypeCoach extends LitElement {
   static properties = {
     current: { type: Array },
@@ -48,85 +61,68 @@ export class TypeCoach extends LitElement {
 
   static styles = [
     css`
-      .font {
+      :host {
+        margin: auto;
+        display: flex;
+        flex-direction: column;
       }
-      .main {
-        cursor: pointer;
+      textarea {
+        font-family: serif;
         font-size: 2em;
         font-weight: bold;
-        font-family: serif;
-        border: 2px solid black;
-        border-radius: 5px;
-        width: 640px;
-        margin: auto;
-        text-align: center;
-      }
-      .main:focus > span[underline] {
-        animation: blinker 1s linear infinite;
-      }
-      @keyframes blinker {
-        50% {
-          opacity: 0;
-        }
+        resize: none;
       }
     `,
   ];
 
   constructor() {
     super();
-    this.current = Array.from(
-      "\"',./:;<>?ABCDEFGHIJKLMNOPQRSTUVWXYZ[]abcdefghijklmnopqrstuvwxyz{}",
-    );
-    shuffle(this.current);
+    this.current = Array.from(generate());
     this.offset = 0;
-    this.__errors = 0;
-    this.__done = [];
     this.median = 0;
     this.__timeStamp = 0;
     this.__median = new RunningMedian();
+    this.__errors = 0;
   }
 
   #onKey(e) {
+    e.preventDefault();
     if (this.current[this.offset].charCodeAt(0) !== e.charCode) {
       this.__errors++;
       return;
     }
     const diff = e.timeStamp - this.__timeStamp;
-    this.__errors += (diff / 400) | 0;
     // store correct presses per minute
-    this.__median.add(12e4 / diff);
+    this.__median.add(6e4 / diff);
     this.__timeStamp = e.timeStamp;
     this.median = this.__median.get();
 
-    (this.__done[this.__errors] ||= []).push(this.current[this.offset]);
-    this.__errors = 0;
     this.offset++;
+    console.info(e.target);
+    e.target.setSelectionRange(this.offset, this.offset + 1);
     if (this.offset < this.current.length) {
       return;
     }
-
-    do {
-      this.current = this.__done.pop();
-    } while (this.current === undefined);
-    shuffle(this.current);
+    this.current = Array.from(generate());
     this.offset = 0;
+    e.target.setSelectionRange(0, 1);
+    this.__errors = 0;
   }
 
   render() {
     return html`
-      <div autofocus class="main" @keypress="${this.#onKey}" tabindex="0">
-        ${
-      this.current.map(
-        (it, idx) =>
-          html`
-            <span ?underline="${idx === this.offset}">${it}</span>
-          `,
-      )
-    }
-      </div>
-      Around ${this.median} successes per minute.
-      <h1>Done</h1>
-      ${this.__done.map((row) => html`<p>${row}</p>`)}
+      <textarea
+        @keypress="${this.#onKey}"
+        @focus="${(e) =>
+          e.target.setSelectionRange(this.offset, this.offset + 1)}"
+        autofocus
+        readonly
+        rows="10"
+      >
+${this.current}</textarea
+      >
+      <p>Around ${this.median} successes per minute.</p>
+      <p>Error rate: ${(this.__errors / this.current.length) * 100}%</p>
     `;
   }
 }
