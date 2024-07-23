@@ -1,6 +1,6 @@
 import { css, html, LitElement, nothing } from "lit";
 import { Heap } from "./Heap";
-import { words } from "../nwt2";
+import { AVERAGE_WORD_LENGTH, words } from "../nwt2";
 
 function shuffle(array) {
   for (let i = array.length - 1; i > 0; i--) {
@@ -50,10 +50,6 @@ class RunningMedian {
   }
 }
 
-const WORDS_PER_EXERCISE = 20;
-
-const TEST_KEY = "testText";
-
 class Beep {
   #context = new AudioContext();
   #on = false;
@@ -78,10 +74,18 @@ class Beep {
   }
 }
 
+// consider letting the length of the exercise & sanction grow over time
+const MAX_SANCTION = 200;
+
+const WORDS_PER_EXERCISE = Math.round(MAX_SANCTION / (AVERAGE_WORD_LENGTH + 1));
+
+const TEST_KEY = "testText";
+
 export class TypeCoach extends LitElement {
   static properties = {
-    current: { type: Array },
+    current: { type: String },
     offset: { type: Number },
+    max: { type: Number },
     median: { type: Number },
   };
 
@@ -91,12 +95,19 @@ export class TypeCoach extends LitElement {
         margin: auto;
         display: flex;
         flex-direction: column;
+        color: #333333;
       }
-      textarea {
+      .status {
         font-family: serif;
         font-size: 2em;
         font-weight: bold;
-        resize: none;
+        border: 1px solid #333333;
+      }
+      .done {
+        background: #33ff33;
+      }
+      .retry {
+        background: #ff3333;
       }
     `,
   ];
@@ -120,7 +131,7 @@ export class TypeCoach extends LitElement {
       window.localStorage.setItem(TEST_KEY, this.current);
     }
     this.offset = 0;
-    this.__score = 0;
+    this.max = 0;
   }
 
   #onKey(e) {
@@ -128,17 +139,12 @@ export class TypeCoach extends LitElement {
     if (this.current[this.offset] !== e.key) {
       this.__expected = this.current[this.offset];
       this.__actual = e.key;
-      const score = (this.offset / this.current.length) * 100;
-      if (this.__score < score) {
-        this.__score = score;
-      }
       TypeCoach.#BEEP.play();
-      if (this.offset < 20) {
+      if (this.offset < MAX_SANCTION) {
         this.offset = 0;
       } else {
-        this.offset -= 20;
+        this.offset -= MAX_SANCTION;
       }
-      e.target.setSelectionRange(this.offset, this.offset + 1);
       return;
     }
     const diff = e.timeStamp - this.__timeStamp;
@@ -148,30 +154,31 @@ export class TypeCoach extends LitElement {
     this.median = this.__median.get();
 
     this.offset++;
-    e.target.setSelectionRange(this.offset, this.offset + 1);
+    if (this.offset > this.max) {
+      this.max = this.offset;
+    }
     if (this.offset < this.current.length) {
       return;
     }
     this.current = generate();
     window.localStorage.setItem(TEST_KEY, this.current);
     this.offset = 0;
-    e.target.setSelectionRange(0, 1);
+    this.max = 0;
   }
 
   render() {
+    const done = this.current.substring(0, this.offset);
+    const retry = this.current.substring(this.offset, this.max);
+    const todo = this.current.substring(this.max);
     return html`
-      <textarea
-        @keypress="${this.#onKey}"
-        @focus="${(e) =>
-          e.target.setSelectionRange(this.offset, this.offset + 1)}"
-        autofocus
-        readonly
-        rows="10"
-      >
-${this.current}</textarea
-      >
+      <div class="status" autofocus @keypress="${this.#onKey}" tabindex="0">
+        <span class="done">${done}</span
+        ><!--anti space
+     --><span class="retry">${retry}</span
+        ><!--anti space
+     --><span class="todo">${todo}</span>
+      </div>
       <p>Around ${this.median} successes per minute.</p>
-      <p>Score: ${this.__score}</p>
       <p>
         ${this.__expected
           ? `Failure: '${this.__actual}' instead of '${this.__expected}'!`
