@@ -97,11 +97,15 @@ export class TypeCoach extends LitElement {
         flex-direction: column;
         color: #333333;
       }
-      .status {
+      .main {
         font-family: serif;
         font-size: 2em;
         font-weight: bold;
+        color: #999999;
         border: 1px solid #333333;
+      }
+      .main:focus {
+        color: #333333;
       }
       .done {
         background: #33ff33;
@@ -171,7 +175,7 @@ export class TypeCoach extends LitElement {
     const retry = this.current.substring(this.offset, this.max);
     const todo = this.current.substring(this.max);
     return html`
-      <div class="status" autofocus @keypress="${this.#onKey}" tabindex="0">
+      <div class="main" autofocus @keypress="${this.#onKey}" tabindex="0">
         <span class="done">${done}</span
         ><!--anti space
      --><span class="retry">${retry}</span
