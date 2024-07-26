@@ -1,6 +1,27 @@
 # TypeCoach
 
-## 2026-07-21
+## 2024-07-27
+
+### Current status
+
+algorithm generates a text of roughly 200 chars by randomly picking words.
+
+- every error sets you back to the start.
+- the text is perisited locally, so you can return to it.
+- a green background shows your current position.
+- a red background shows how far you got before the fruther error
+- error are listed below
+- a light grey text means the app is not listening to input
+
+I dropped the idea of a genetic algorithm or whatever in favor of this. I need
+to be reminded that 200 corretc characters in a row is an option
+
+### Command line utilities
+
+Using texts from Gutenberg. For getting a word list to work with:
+`gc wp.txt | Sort-Object -CaseSensitive | Get-Unique > wp2.txt`
+
+## 2024-07-21
 
 Genetic algorithm. Generate strings that get one error in them, in order to
 gradually improve difficulty. The exact process of breaking up, mixing,

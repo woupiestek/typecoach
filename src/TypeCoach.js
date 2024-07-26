@@ -1,6 +1,6 @@
 import { css, html, LitElement, nothing } from "lit";
 import { Heap } from "./Heap";
-import { AVERAGE_WORD_LENGTH, words } from "../nwt2";
+import { AVERAGE_WORD_LENGTH, words } from "../words";
 
 function shuffle(array) {
   for (let i = array.length - 1; i > 0; i--) {
@@ -85,7 +85,6 @@ export class TypeCoach extends LitElement {
   static properties = {
     current: { type: String },
     offset: { type: Number },
-    max: { type: Number },
     median: { type: Number },
   };
 
@@ -113,6 +112,9 @@ export class TypeCoach extends LitElement {
       .retry {
         background: #ff3333;
       }
+      .errors {
+        display: flex;
+      }
     `,
   ];
 
@@ -121,7 +123,7 @@ export class TypeCoach extends LitElement {
   constructor() {
     super();
     this.current = "";
-    this.offset = 0;
+    this.offest = 0;
     this.median = 0;
     this.__timeStamp = 0;
     this.__median = new RunningMedian();
@@ -136,13 +138,13 @@ export class TypeCoach extends LitElement {
     }
     this.offset = 0;
     this.max = 0;
+    this.errors = [];
   }
 
   #onKey(e) {
     e.preventDefault();
     if (this.current[this.offset] !== e.key) {
-      this.__expected = this.current[this.offset];
-      this.__actual = e.key;
+      this.errors.push([this.offset, this.current[this.offset], e.key]);
       TypeCoach.#BEEP.play();
       if (this.offset < MAX_SANCTION) {
         this.offset = 0;
@@ -168,6 +170,7 @@ export class TypeCoach extends LitElement {
     window.localStorage.setItem(TEST_KEY, this.current);
     this.offset = 0;
     this.max = 0;
+    this.errors = [];
   }
 
   render() {
@@ -183,12 +186,27 @@ export class TypeCoach extends LitElement {
      --><span class="todo">${todo}</span>
       </div>
       <p>Around ${this.median} successes per minute.</p>
-      <p>
-        ${this.__expected
-          ? `Failure: '${this.__actual}' instead of '${this.__expected}'!`
-          : nothing}
-      </p>
+      <p>Errors: ${this.#errorLists()}</p>
     `;
+  }
+
+  #errorLists() {
+    const result = [];
+    for (let i = 0, l = this.errors.length; i < l; i += 25) {
+      result.push(this.#errorList(i));
+    }
+    return html`<div class="errors">${result}</div>`;
+  }
+
+  #errorList(i) {
+    const result = [];
+    for (let j = i, l = this.errors.length; j < l && j < i + 25; j++) {
+      const [x, e, a] = this.errors[j];
+      result.push(html`<li>'${a}' instead of '${e}' at ${x}</li>`);
+    }
+    return html`<ul>
+      ${result}
+    </ul>`;
   }
 }
 
