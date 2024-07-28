@@ -1,6 +1,6 @@
 import { css, html, LitElement, nothing } from "lit";
 import { Heap } from "./Heap";
-import { AVERAGE_WORD_LENGTH, words } from "../words";
+import { words } from "./word";
 
 function shuffle(array) {
   for (let i = array.length - 1; i > 0; i--) {
@@ -77,7 +77,7 @@ class Beep {
 // consider letting the length of the exercise & sanction grow over time
 const MAX_SANCTION = 200;
 
-const WORDS_PER_EXERCISE = Math.round(MAX_SANCTION / (AVERAGE_WORD_LENGTH + 1));
+const WORDS_PER_EXERCISE = 25;
 
 const TEST_KEY = "testText";
 
@@ -86,6 +86,7 @@ export class TypeCoach extends LitElement {
     current: { type: String },
     offset: { type: Number },
     median: { type: Number },
+    errorCount: { type: Number },
   };
 
   static styles = [
@@ -122,11 +123,13 @@ export class TypeCoach extends LitElement {
 
   constructor() {
     super();
-    this.current = "";
-    this.offest = 0;
-    this.median = 0;
-    this.__timeStamp = 0;
     this.__median = new RunningMedian();
+    this.__timeStamp = 0;
+    this.current = "";
+    this.errorCount = 0;
+    this.errors = [];
+    this.median = 0;
+    this.offset = 0;
   }
 
   connectedCallback() {
@@ -136,15 +139,17 @@ export class TypeCoach extends LitElement {
       this.current = generate();
       window.localStorage.setItem(TEST_KEY, this.current);
     }
-    this.offset = 0;
-    this.max = 0;
+    this.errorCount = 0;
     this.errors = [];
+    this.max = 0;
+    this.offset = 0;
   }
 
   #onKey(e) {
     e.preventDefault();
     if (this.current[this.offset] !== e.key) {
       this.errors.push([this.offset, this.current[this.offset], e.key]);
+      this.errorCount = this.errors.length;
       TypeCoach.#BEEP.play();
       if (this.offset < MAX_SANCTION) {
         this.offset = 0;
@@ -153,9 +158,8 @@ export class TypeCoach extends LitElement {
       }
       return;
     }
-    const diff = e.timeStamp - this.__timeStamp;
     // store correct presses per minute
-    this.__median.add(6e4 / diff);
+    this.__median.add(e.timeStamp - this.__timeStamp);
     this.__timeStamp = e.timeStamp;
     this.median = this.__median.get();
 
@@ -185,7 +189,7 @@ export class TypeCoach extends LitElement {
         ><!--anti space
      --><span class="todo">${todo}</span>
       </div>
-      <p>Around ${this.median} successes per minute.</p>
+      <p>Around ${this.median / 4 - 100}% over target stroke rate</p>
       <p>Errors: ${this.#errorLists()}</p>
     `;
   }

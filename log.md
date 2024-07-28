@@ -1,5 +1,10 @@
 # TypeCoach
 
+## 2024-07-28
+
+Debugging powershell script:
+`Get-Content wp.txt -Encoding utf8 | Sort-Object -CaseSensitive | Get-Unique | Out-File wp2.txt -Encoding utf8`
+
 ## 2024-07-27
 
 ### Current status
