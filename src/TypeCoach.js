@@ -115,6 +115,7 @@ export class TypeCoach extends LitElement {
       }
       .errors {
         display: flex;
+        flex-wrap: wrap;
       }
     `,
   ];
@@ -127,7 +128,7 @@ export class TypeCoach extends LitElement {
     this.__timeStamp = 0;
     this.current = "";
     this.errorCount = 0;
-    this.errors = [];
+    this.errors = new Map();
     this.median = 0;
     this.offset = 0;
   }
@@ -140,7 +141,7 @@ export class TypeCoach extends LitElement {
       window.localStorage.setItem(TEST_KEY, this.current);
     }
     this.errorCount = 0;
-    this.errors = [];
+    this.errors = new Map();
     this.max = 0;
     this.offset = 0;
   }
@@ -148,8 +149,9 @@ export class TypeCoach extends LitElement {
   #onKey(e) {
     e.preventDefault();
     if (this.current[this.offset] !== e.key) {
-      this.errors.push([this.offset, this.current[this.offset], e.key]);
-      this.errorCount = this.errors.length;
+      const key = `'${e.key}' for '${this.current[this.offset]}' at ${this.offset}`;
+      this.errors.set(key, 1 + (this.errors.get(key) || 0));
+      this.errorCount++;
       TypeCoach.#BEEP.play();
       if (this.offset < MAX_SANCTION) {
         this.offset = 0;
@@ -174,7 +176,8 @@ export class TypeCoach extends LitElement {
     window.localStorage.setItem(TEST_KEY, this.current);
     this.offset = 0;
     this.max = 0;
-    this.errors = [];
+    this.errorCount = 0;
+    this.errors.clear();
   }
 
   render() {
@@ -189,24 +192,24 @@ export class TypeCoach extends LitElement {
         ><!--anti space
      --><span class="todo">${todo}</span>
       </div>
-      <p>Around ${this.median / 4 - 100}% over target stroke rate</p>
-      <p>Errors: ${this.#errorLists()}</p>
+      <p>Around ${this.median} ms between strokes (> 400 ms target)</p>
+      <p>${this.errorCount} errors: ${this.#errorLists()}</p>
     `;
   }
 
   #errorLists() {
+    const array = [...this.errors.entries()];
     const result = [];
-    for (let i = 0, l = this.errors.length; i < l; i += 25) {
-      result.push(this.#errorList(i));
+    for (let i = 0, l = this.errors.size; i < l; i += 25) {
+      result.push(this.#errorList(array.slice(i, i + 25)));
     }
     return html`<div class="errors">${result}</div>`;
   }
 
-  #errorList(i) {
+  #errorList(slice) {
     const result = [];
-    for (let j = i, l = this.errors.length; j < l && j < i + 25; j++) {
-      const [x, e, a] = this.errors[j];
-      result.push(html`<li>'${a}' instead of '${e}' at ${x}</li>`);
+    for (const [error, count] of slice) {
+      result.push(html`<li>${count} times ${error}</li>`);
     }
     return html`<ul>
       ${result}
