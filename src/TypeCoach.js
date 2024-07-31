@@ -145,11 +145,18 @@ export class TypeCoach extends LitElement {
     this.max = 0;
     this.offset = 0;
   }
-
+  
   #onKey(e) {
     e.preventDefault();
+    // store correct presses per minute
+    this.__median.add(e.timeStamp - this.__timeStamp);
+    this.__timeStamp = e.timeStamp;
+    this.median = this.__median.get();
+
     if (this.current[this.offset] !== e.key) {
-      const key = `'${e.key}' for '${this.current[this.offset]}' at ${this.offset}`;
+      const key = `'${e.key}' for '${
+        this.current[this.offset]
+      }' at ${this.offset}`;
       this.errors.set(key, 1 + (this.errors.get(key) || 0));
       this.errorCount++;
       TypeCoach.#BEEP.play();
@@ -160,10 +167,6 @@ export class TypeCoach extends LitElement {
       }
       return;
     }
-    // store correct presses per minute
-    this.__median.add(e.timeStamp - this.__timeStamp);
-    this.__timeStamp = e.timeStamp;
-    this.median = this.__median.get();
 
     this.offset++;
     if (this.offset > this.max) {
@@ -192,7 +195,7 @@ export class TypeCoach extends LitElement {
         ><!--anti space
      --><span class="todo">${todo}</span>
       </div>
-      <p>Around ${this.median} ms between strokes (> 400 ms target)</p>
+      <p>Around ${Math.round(this.median)} ms between strokes (> 400 ms target)</p>
       <p>${this.errorCount} errors: ${this.#errorLists()}</p>
     `;
   }

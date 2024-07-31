@@ -1,5 +1,16 @@
 # TypeCoach
 
+## 2024-07-31
+
+### ideas
+
+- select characters: select only words that contain certain difficult characters
+- circular exercise: no jump back, but everything up to that point does not
+  count anymore, so the exercise wraps around when reaching the end. Could be
+  done by shifting the string, which might be clearer visually.
+- Hold on end. Don't jump to the next exercise right away, so you can relfect on
+  your errors.
+
 ## 2024-07-28
 
 Debugging powershell script:
