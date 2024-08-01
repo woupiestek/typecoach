@@ -1,5 +1,13 @@
 # TypeCoach
 
+## 2024-08-01
+
+### ideas
+
+Forget about storage. Eventually parameters like length of exercise, set of
+characters, preferred characters can be stored to adjust difficulty based on
+error rate.
+
 ## 2024-07-31
 
 ### ideas

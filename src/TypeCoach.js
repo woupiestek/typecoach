@@ -135,17 +135,13 @@ export class TypeCoach extends LitElement {
 
   connectedCallback() {
     super.connectedCallback();
-    this.current = window.localStorage.getItem(TEST_KEY);
-    if (!this.current) {
-      this.current = generate();
-      window.localStorage.setItem(TEST_KEY, this.current);
-    }
+    this.current = generate();
     this.errorCount = 0;
     this.errors = new Map();
     this.max = 0;
     this.offset = 0;
   }
-  
+
   #onKey(e) {
     e.preventDefault();
     // store correct presses per minute
@@ -176,7 +172,6 @@ export class TypeCoach extends LitElement {
       return;
     }
     this.current = generate();
-    window.localStorage.setItem(TEST_KEY, this.current);
     this.offset = 0;
     this.max = 0;
     this.errorCount = 0;
@@ -195,7 +190,9 @@ export class TypeCoach extends LitElement {
         ><!--anti space
      --><span class="todo">${todo}</span>
       </div>
-      <p>Around ${Math.round(this.median)} ms between strokes (> 400 ms target)</p>
+      <p>
+        Around ${Math.round(this.median)} ms between strokes (> 400 ms target)
+      </p>
       <p>${this.errorCount} errors: ${this.#errorLists()}</p>
     `;
   }
