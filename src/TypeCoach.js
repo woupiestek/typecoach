@@ -95,23 +95,26 @@ export class TypeCoach extends LitElement {
         margin: auto;
         display: flex;
         flex-direction: column;
-        color: #333333;
+        background: #333333;
+        color: #cccccc;
       }
       .main {
         font-family: serif;
         font-size: 2em;
         font-weight: bold;
-        color: #999999;
-        border: 1px solid #333333;
+        color: #666666;
+        border: 4px solid #cccccc;
+        border-radius: 4px;
       }
       .main:focus {
-        color: #333333;
+        color: #cccccc;
+        outline: none;
       }
       .done {
-        background: #33ff33;
+        background: #339933;
       }
       .retry {
-        background: #ff3333;
+        background: #993333;
       }
       .errors {
         display: flex;
@@ -190,10 +193,8 @@ export class TypeCoach extends LitElement {
         ><!--anti space
      --><span class="todo">${todo}</span>
       </div>
-      <p>
-        Around ${Math.round(this.median)} ms between strokes (> 400 ms target)
-      </p>
-      <p>${this.errorCount} errors: ${this.#errorLists()}</p>
+        Around ${Math.round(this.median)} ms per stroke (> 400 ms target).
+      ${this.errorCount} errors: ${this.#errorLists()}
     `;
   }
 
