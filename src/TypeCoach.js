@@ -1,6 +1,6 @@
 import { css, html, LitElement, nothing } from "lit";
 import { Heap } from "./Heap";
-import { words } from "./word";
+import { words } from "./words";
 
 function shuffle(array) {
   for (let i = array.length - 1; i > 0; i--) {
