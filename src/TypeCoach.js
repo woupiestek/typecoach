@@ -74,12 +74,7 @@ class Beep {
   }
 }
 
-// consider letting the length of the exercise & sanction grow over time
-const MAX_SANCTION = 200;
-
 const WORDS_PER_EXERCISE = 25;
-
-const TEST_KEY = "testText";
 
 export class TypeCoach extends LitElement {
   static properties = {
@@ -133,6 +128,7 @@ export class TypeCoach extends LitElement {
     this.current = "";
     this.errorCount = 0;
     this.errors = [];
+    this.keys = [];
     this.median = 0;
     this.offset = 0;
   }
@@ -142,6 +138,7 @@ export class TypeCoach extends LitElement {
     this.current = generate();
     this.errorCount = 0;
     this.errors = [];
+    this.keys = [];
     this.max = 0;
     this.offset = 0;
   }
@@ -152,17 +149,13 @@ export class TypeCoach extends LitElement {
     this.__median.add(e.timeStamp - this.__timeStamp);
     this.__timeStamp = e.timeStamp;
     this.median = this.__median.get();
-
+    this.keys[this.offset] = e.key;
     if (this.current[this.offset] !== e.key) {
       this.errors[this.offset] ||= [];
       this.errors[this.offset].push(e.key);
       this.errorCount++;
       TypeCoach.#BEEP.play();
-      if (this.offset < MAX_SANCTION) {
-        this.offset = 0;
-      } else {
-        this.offset -= MAX_SANCTION;
-      }
+      this.offset = 0;
       return;
     }
 
@@ -199,13 +192,11 @@ export class TypeCoach extends LitElement {
   }
 
   #replacements() {
-    return Array.from(this.current.slice(0, this.max + 1)).map((c, i) => {
-      if (this.errors[i] === undefined) {
+    return this.keys.map((c, i) => {
+      if (c === this.current[i]) {
         return html`${c}`;
       }
-      return html`<span style="color:#cc3333;"
-        >${this.errors[i][this.errors[i].length - 1]}</span
-      >`;
+      return html`<span style="color:#cc3333;">${c}</span>`;
     });
   }
 
