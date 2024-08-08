@@ -105,6 +105,7 @@ export class TypeCoach extends LitElement {
         color: #666666;
         border: 4px solid #cccccc;
         border-radius: 4px;
+        height: 200px;
       }
       .main:focus {
         color: #cccccc;
@@ -131,7 +132,7 @@ export class TypeCoach extends LitElement {
     this.__timeStamp = 0;
     this.current = "";
     this.errorCount = 0;
-    this.errors = new Map();
+    this.errors = [];
     this.median = 0;
     this.offset = 0;
   }
@@ -140,7 +141,7 @@ export class TypeCoach extends LitElement {
     super.connectedCallback();
     this.current = generate();
     this.errorCount = 0;
-    this.errors = new Map();
+    this.errors = [];
     this.max = 0;
     this.offset = 0;
   }
@@ -153,10 +154,8 @@ export class TypeCoach extends LitElement {
     this.median = this.__median.get();
 
     if (this.current[this.offset] !== e.key) {
-      const key = `'${e.key}' for '${
-        this.current[this.offset]
-      }' at ${this.offset}`;
-      this.errors.set(key, 1 + (this.errors.get(key) || 0));
+      this.errors[this.offset] ||= [];
+      this.errors[this.offset].push(e.key);
       this.errorCount++;
       TypeCoach.#BEEP.play();
       if (this.offset < MAX_SANCTION) {
@@ -178,7 +177,7 @@ export class TypeCoach extends LitElement {
     this.offset = 0;
     this.max = 0;
     this.errorCount = 0;
-    this.errors.clear();
+    this.errors = [];
   }
 
   render() {
@@ -189,32 +188,47 @@ export class TypeCoach extends LitElement {
       <div class="main" autofocus @keypress="${this.#onKey}" tabindex="0">
         <span class="done">${done}</span
         ><!--anti space
-     --><span class="retry">${retry}</span
+        --><span class="retry">${retry}</span
         ><!--anti space
-     --><span class="todo">${todo}</span>
+        --><span class="todo">${todo}</span>
       </div>
-        Around ${Math.round(this.median)} ms per stroke (> 400 ms target).
-      ${this.errorCount} errors: ${this.#errorLists()}
+      <div class="main">${this.#replacements()}</div>
+      Around ${Math.round(this.median)} ms per stroke (> 400 ms target).
+      ${this.errorCount} errors: ${this.#errors()}
     `;
   }
 
-  #errorLists() {
-    const array = [...this.errors.entries()];
-    const result = [];
-    for (let i = 0, l = this.errors.size; i < l; i += 25) {
-      result.push(this.#errorList(array.slice(i, i + 25)));
-    }
-    return html`<div class="errors">${result}</div>`;
+  #replacements() {
+    return Array.from(this.current.slice(0, this.max + 1)).map((c, i) => {
+      if (this.errors[i] === undefined) {
+        return html`${c}`;
+      }
+      return html`<span style="color:#cc3333;"
+        >${this.errors[i][this.errors[i].length - 1]}</span
+      >`;
+    });
   }
 
-  #errorList(slice) {
-    const result = [];
-    for (const [error, count] of slice) {
-      result.push(html`<li>${count} times ${error}</li>`);
+  #errors() {
+    const array = [];
+    for (let i = 0; i <= this.max; i++) {
+      if (!this.errors[i]?.length) continue;
+      array.push(
+        html`<li>
+          '${this.errors[i].join("', '")}' for '${this.current[i]}' at ${i}
+        </li>`,
+      );
     }
-    return html`<ul>
-      ${result}
-    </ul>`;
+    console.log(array);
+    const result = [];
+    for (let i = 0, l = array.length; i < l; i += 25) {
+      result.push(
+        html`<ul>
+          ${array.slice(i, i + 25)}
+        </ul>`,
+      );
+    }
+    return html`<div class="errors">${result}</div>`;
   }
 }
 

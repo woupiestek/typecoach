@@ -1,5 +1,11 @@
 # TypeCoach
 
+## 2024-08-08
+
+Could I add warning signs at certain characters?
+
+Maybe just replace each character with the most common error.
+
 ## 2024-08-01
 
 ### ideas
