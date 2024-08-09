@@ -109,9 +109,6 @@ export class TypeCoach extends LitElement {
       .done {
         background: #339933;
       }
-      .retry {
-        background: #993333;
-      }
       .errors {
         display: flex;
         flex-wrap: wrap;
@@ -139,7 +136,6 @@ export class TypeCoach extends LitElement {
     this.errorCount = 0;
     this.errors = [];
     this.keys = [];
-    this.max = 0;
     this.offset = 0;
   }
 
@@ -160,28 +156,22 @@ export class TypeCoach extends LitElement {
     }
 
     this.offset++;
-    if (this.offset > this.max) {
-      this.max = this.offset;
-    }
     if (this.offset < this.current.length) {
       return;
     }
     this.current = generate();
     this.offset = 0;
-    this.max = 0;
+    this.keys = [];
     this.errorCount = 0;
     this.errors = [];
   }
 
   render() {
     const done = this.current.substring(0, this.offset);
-    const retry = this.current.substring(this.offset, this.max);
-    const todo = this.current.substring(this.max);
+    const todo = this.current.substring(this.offset);
     return html`
       <div class="main" autofocus @keypress="${this.#onKey}" tabindex="0">
         <span class="done">${done}</span
-        ><!--anti space
-        --><span class="retry">${retry}</span
         ><!--anti space
         --><span class="todo">${todo}</span>
       </div>
@@ -202,24 +192,15 @@ export class TypeCoach extends LitElement {
 
   #errors() {
     const array = [];
-    for (let i = 0; i <= this.max; i++) {
+    for (let i = 0; i <= this.keys.length; i++) {
       if (!this.errors[i]?.length) continue;
       array.push(
-        html`<li>
-          '${this.errors[i].join("', '")}' for '${this.current[i]}' at ${i}
-        </li>`,
+        `
+          '${this.errors[i].join("', '")}' for '${this.current[i]}' at ${i}.
+        `,
       );
     }
-    console.log(array);
-    const result = [];
-    for (let i = 0, l = array.length; i < l; i += 25) {
-      result.push(
-        html`<ul>
-          ${array.slice(i, i + 25)}
-        </ul>`,
-      );
-    }
-    return html`<div class="errors">${result}</div>`;
+    return array.join(" ");
   }
 }
 
