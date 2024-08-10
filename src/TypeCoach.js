@@ -183,10 +183,15 @@ export class TypeCoach extends LitElement {
 
   #replacements() {
     return this.keys.map((c, i) => {
-      if (c === this.current[i]) {
-        return html`${c}`;
+      if (c !== this.current[i]) {
+        return html`<span style="background:#cc3333;">${
+          c === " " ? html`&nbsp;` : c
+        }</span>`;
       }
-      return html`<span style="color:#cc3333;">${c}</span>`;
+      if (this.errors[i]?.length) {
+        return html`<span style="background:#33cc33;">${c}</span>`;
+      }
+      return html`${c}`;
     });
   }
 
