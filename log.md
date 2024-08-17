@@ -1,5 +1,17 @@
 # TypeCoach
 
+## 2024-08-15
+
+Zooming in: first truncate the string to a small number of characters around the
+mistake, and only start from the beginning later.
+
+Ultimately it should be more work to make a mistake, but broken down into
+smaller challenges before returning to the start.
+
+The algorithm could work with a stack of strings to 'complete', or maybe a stack
+of offsets and distances, that rises with a mistake and falls when the string is
+completed without errors.
+
 ## 2024-08-08
 
 Could I add warning signs at certain characters?
