@@ -128,6 +128,8 @@ export class TypeCoach extends LitElement {
     this.keys = [];
     this.median = 0;
     this.offset = 0;
+    this.strokeCount = 0;
+    this.totalTime = 0;
   }
 
   connectedCallback() {
@@ -141,8 +143,13 @@ export class TypeCoach extends LitElement {
 
   #onKey(e) {
     e.preventDefault();
+    const deltaTime = e.timeStamp - this.__timeStamp;
     // store correct presses per minute
-    this.__median.add(e.timeStamp - this.__timeStamp);
+    this.__median.add(deltaTime);
+    if (deltaTime < 1000) {
+      this.totalTime += deltaTime;
+      this.strokeCount++;
+    }
     this.__timeStamp = e.timeStamp;
     this.median = this.__median.get();
     this.keys[this.offset] = e.key;
@@ -176,17 +183,21 @@ export class TypeCoach extends LitElement {
         --><span class="todo">${todo}</span>
       </div>
       <div class="main">${this.#replacements()}</div>
-      Around ${Math.round(this.median)} ms per stroke (> 400 ms target).
-      ${this.errorCount} errors: ${this.#errors()}
+      Doorsnee tijd tussen aanslagen:
+      ${this.median ? Math.round(this.median) : "-"} ms. Gemiddelde tijd tussen
+      aanslagen:
+      ${this.strokeCount ? Math.round(this.totalTime / this.strokeCount) : "-"}
+      ms. Doel < 400 ms per aanslag. ${this.errorCount} fouten:
+      ${this.#errors()}
     `;
   }
 
   #replacements() {
     return this.keys.map((c, i) => {
       if (c !== this.current[i]) {
-        return html`<span style="background:#cc3333;">${
-          c === " " ? html`&nbsp;` : c
-        }</span>`;
+        return html`<span style="background:#cc3333;"
+          >${c === " " ? html`&nbsp;` : c}</span
+        >`;
       }
       if (this.errors[i]?.length) {
         return html`<span style="background:#33cc33;">${c}</span>`;
