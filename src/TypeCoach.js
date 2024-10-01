@@ -184,11 +184,14 @@ export class TypeCoach extends LitElement {
       </div>
       <div class="main">${this.#replacements()}</div>
       Doorsnee tijd tussen aanslagen:
-      ${this.median ? Math.round(this.median) : "-"} ms. Gemiddelde tijd tussen
-      aanslagen:
-      ${this.strokeCount ? Math.round(this.totalTime / this.strokeCount) : "-"}
-      ms. Doel < 400 ms per aanslag. ${this.errorCount} fouten:
-      ${this.#errors()}
+      ${this.median ? Math.round(this.median) : "-"} ms. Gemiddeld aantal
+      aanslagen per minuut:
+      ${
+      this.totalTime
+        ? Math.round((6e4 * this.strokeCount) / this.totalTime)
+        : "-"
+    }.
+      ${this.errorCount} fouten: ${this.#errors()}
     `;
   }
 
