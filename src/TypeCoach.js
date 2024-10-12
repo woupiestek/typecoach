@@ -74,7 +74,7 @@ class Beep {
   }
 }
 
-const WORDS_PER_EXERCISE = 25;
+const WORDS_PER_EXERCISE = 32;
 
 export class TypeCoach extends LitElement {
   static properties = {
