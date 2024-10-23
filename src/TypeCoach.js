@@ -1,15 +1,6 @@
-import { css, html, LitElement, nothing } from "lit";
+import { css, html, LitElement } from "lit";
 import { Heap } from "./Heap";
 import { words } from "./words";
-
-function shuffle(array) {
-  for (let i = array.length - 1; i > 0; i--) {
-    const j = ((i + 1) * Math.random()) | 0;
-    const char = array[i];
-    array[i] = array[j];
-    array[j] = char;
-  }
-}
 
 function sample(array) {
   return array[(array.length * Math.random()) | 0];
