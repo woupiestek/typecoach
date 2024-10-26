@@ -182,6 +182,8 @@ export class TypeCoach extends LitElement {
         ? Math.round((6e4 * this.strokeCount) / this.totalTime)
         : "-"
     }.
+      Gemiddeld aantal aanslagen per fout:
+      ${this.errorCount ? Math.round(this.strokeCount / this.errorCount) : "-"}.
       ${this.errorCount} fouten: ${this.#errors()}
     `;
   }

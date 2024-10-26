@@ -1,5 +1,40 @@
 # TypeCoach
 
+## 2024-10-26
+
+Current exercises try to improve accuracy to a level by providing a stretch of
+characters of a certain length, implicitily saying: only one error per execise
+allowed... But we need to get the rate of errors down.
+
+1. compensation: repeat a sequence of characters until the overall error rate
+   gets below the threshold.
+2. combine with shorter exercises...
+
+Note: 20 charcter exercises needs to be repeated 10 times to compensate for one
+error any new error increases the load by ten. Is that what we want?
+
+So just the exercises we have now, but with a reset until the error rate drops
+below the threshold. Shorter exercises require more repetitions when failed.
+
+How about ca 100 characters, one error means one perfect repetition needed.
+Maybe there is no sweetspot. Just type the same long text over and over again,
+not just until doing it perfect once, but until previous errors have been
+compensated for. the current exercises are more than long enough. Still, 40
+errors require 8000 strokes, or 40 times redoing the same exercise.
+
+Compromise: cap the error rate to two or three times the target rate, i.e. any
+errors beyond that point mean that the exercise was failed, but doesn't ask for
+more repetition to move on.
+
+Why do I still suck so hard!?
+
+### 5 chances
+
+Say 1000 characters:
+
+- more than 5 errors: hatespeech on screen and move on
+- get below 1 error per 200 at the end: move on.
+
 ## 2024-08-15
 
 Zooming in: first truncate the string to a small number of characters around the
