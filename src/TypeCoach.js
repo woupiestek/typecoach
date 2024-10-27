@@ -160,7 +160,7 @@ export class TypeCoach extends LitElement {
     this.current = generate();
     this.offset = 0;
     this.keys = [];
-    this.errorCount = 0;
+    // this.errorCount = 0;
     this.errors = [];
   }
 
@@ -184,7 +184,7 @@ export class TypeCoach extends LitElement {
     }.
       Gemiddeld aantal aanslagen per fout:
       ${this.errorCount ? Math.round(this.strokeCount / this.errorCount) : "-"}.
-      ${this.errorCount} fouten: ${this.#errors()}
+      ${this.#errors()}
     `;
   }
 
@@ -204,15 +204,17 @@ export class TypeCoach extends LitElement {
 
   #errors() {
     const array = [];
+    let count = 0;
     for (let i = 0; i <= this.keys.length; i++) {
       if (!this.errors[i]?.length) continue;
+      count += this.errors[i].length;
       array.push(
         `
           '${this.errors[i].join("', '")}' for '${this.current[i]}' at ${i}.
         `,
       );
     }
-    return array.join(" ");
+    return count + " fouten: " + array.join(" ");
   }
 }
 
