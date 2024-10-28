@@ -7,9 +7,11 @@ function sample(array) {
 }
 
 function generate() {
-  return Array.from({ length: WORDS_PER_EXERCISE })
-    .map((_) => sample(words))
-    .join(" ");
+  let string = sample(words);
+  while (string.length < 200) {
+    string += " " + sample(words);
+  }
+  return string;
 }
 
 class RunningMedian {
@@ -149,7 +151,7 @@ export class TypeCoach extends LitElement {
       this.errors[this.offset].push(e.key);
       this.errorCount++;
       TypeCoach.#BEEP.play();
-      this.offset = 0;
+      // this.offset = 0;
       return;
     }
 
@@ -157,63 +159,36 @@ export class TypeCoach extends LitElement {
     if (this.offset < this.current.length) {
       return;
     }
+    if (this.strokeCount / (1 + this.errorCount) < 200) {
+      this.offset = 0;
+      return;
+    }
     this.current = generate();
-    this.offset = 0;
-    this.keys = [];
-    this.errors = [];
+    this.errorCount = 0;
   }
 
   render() {
     const done = this.current.substring(0, this.offset);
     const todo = this.current.substring(this.offset);
-    return html`
-      <div class="main" autofocus @keypress="${this.#onKey}" tabindex="0">
+    return html` <div
+        class="main"
+        autofocus
+        @keypress="${this.#onKey}"
+        tabindex="0"
+      >
         <span class="done">${done}</span
         ><!--anti space
         --><span class="todo">${todo}</span>
       </div>
-      <div class="main">${this.#replacements()}</div>
-      Doorsnee tijd tussen aanslagen:
-      ${this.median ? Math.round(this.median) : "-"} ms. Gemiddeld aantal
-      aanslagen per minuut:
+      Fouten: ${this.errorCount}. Score:
+      ${Math.round(this.strokeCount / (1 + this.errorCount))}/200. Doorsnee tijd
+      tussen aanslagen: ${this.median ? Math.round(this.median) : "-"} ms.
+      Gemiddeld aantal aanslagen per minuut:
       ${
       this.totalTime
         ? Math.round((6e4 * this.strokeCount) / this.totalTime)
         : "-"
-    }.
-      Gemiddeld aantal aanslagen per fout:
-      ${this.errorCount ? Math.round(this.strokeCount / this.errorCount) : "-"}.
-      ${this.#errors()}
-    `;
-  }
-
-  #replacements() {
-    return this.keys.map((c, i) => {
-      if (c !== this.current[i]) {
-        return html`<span style="background:#cc3333;"
-          >${c === " " ? html`&nbsp;` : c}</span
-        >`;
-      }
-      if (this.errors[i]?.length) {
-        return html`<span style="background:#33cc33;">${c}</span>`;
-      }
-      return html`${c}`;
-    });
-  }
-
-  #errors() {
-    const array = [];
-    let count = 0;
-    for (let i = 0; i <= this.keys.length; i++) {
-      if (!this.errors[i]?.length) continue;
-      count += this.errors[i].length;
-      array.push(
-        `
-          '${this.errors[i].join("', '")}' for '${this.current[i]}' at ${i}.
-        `,
-      );
-    }
-    return count + " fouten: " + array.join(" ");
+    }.`;
   }
 }
 

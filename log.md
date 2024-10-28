@@ -1,5 +1,11 @@
 # TypeCoach
 
+## 2024-10-28
+
+I cannot understand how bad I am at typing. I've been at it for a year, and know
+to find every key. But I keep having to get one key in thirty wrong, and I
+cannot understand why. What the hell is worng with me?
+
 ## 2024-10-26
 
 Current exercises try to improve accuracy to a level by providing a stretch of
