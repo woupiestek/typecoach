@@ -84,6 +84,7 @@ export class TypeCoach extends LitElement {
         flex-direction: column;
         background: #333333;
         color: #cccccc;
+        align-items: center;
       }
       .main {
         font-family: serif;
@@ -92,7 +93,7 @@ export class TypeCoach extends LitElement {
         color: #666666;
         border: 4px solid #cccccc;
         border-radius: 4px;
-        height: 200px;
+        max-width: 800px;
       }
       .main:focus {
         color: #cccccc;
