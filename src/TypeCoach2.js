@@ -74,7 +74,6 @@ export class TypeCoach extends LitElement {
     current: { type: String },
     offset: { type: Number },
     median: { type: Number },
-    errorCount: { type: Number },
   };
 
   static styles = [
@@ -116,7 +115,6 @@ export class TypeCoach extends LitElement {
     this.__median = new RunningMedian();
     this.__timeStamp = 0;
     this.current = "";
-    this.errorCount = 0;
     this.errors = [];
     this.keys = [];
     this.median = 0;
@@ -128,7 +126,6 @@ export class TypeCoach extends LitElement {
   connectedCallback() {
     super.connectedCallback();
     this.current = generate();
-    this.errorCount = 0;
     this.errors = [];
     this.keys = [];
     this.offset = 0;
@@ -147,11 +144,8 @@ export class TypeCoach extends LitElement {
     this.median = this.__median.get();
     this.keys[this.offset] = e.key;
     if (this.current[this.offset] !== e.key) {
-      this.errors[this.offset] ||= [];
-      this.errors[this.offset].push(e.key);
-      this.errorCount++;
+      this.errors.push(this.strokeCount);
       TypeCoach.#BEEP.play();
-      // this.offset = 0;
       return;
     }
 
@@ -159,12 +153,11 @@ export class TypeCoach extends LitElement {
     if (this.offset < this.current.length) {
       return;
     }
-    if (this.strokeCount / (1 + this.errorCount) < 200) {
+    if (this.score() < 200) {
       this.offset = 0;
       return;
     }
     this.current = generate();
-    this.errorCount = 0;
   }
 
   render() {
@@ -180,8 +173,7 @@ export class TypeCoach extends LitElement {
         ><!--anti space
         --><span class="todo">${todo}</span>
       </div>
-      Fouten: ${this.errorCount}. Score:
-      ${Math.round(this.strokeCount / (1 + this.errorCount))}/200. Doorsnee tijd
+      Score: ${this.score()}/200. Doorsnee tijd
       tussen aanslagen: ${this.median ? Math.round(this.median) : "-"} ms.
       Gemiddeld aantal aanslagen per minuut:
       ${
@@ -189,6 +181,13 @@ export class TypeCoach extends LitElement {
         ? Math.round((6e4 * this.strokeCount) / this.totalTime)
         : "-"
     }.`;
+  }
+
+  score() {
+    return Math.round(
+      this.strokeCount /
+        (1 + this.errors.filter((s) => this.strokeCount - s < 1000).length),
+    );
   }
 }
 
