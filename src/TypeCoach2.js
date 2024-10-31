@@ -186,7 +186,7 @@ export class TypeCoach extends LitElement {
 
   score() {
     return Math.round(
-      this.strokeCount /
+      Math.min(this.strokeCount, 1000) /
         (1 + this.errors.filter((s) => this.strokeCount - s < 1000).length),
     );
   }
