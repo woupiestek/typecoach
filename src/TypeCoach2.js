@@ -154,7 +154,7 @@ export class TypeCoach extends LitElement {
     if (this.offset < this.current.length) {
       return;
     }
-    if (this.score() < 200) {
+    if (this.#accuracy() < 99.5) {
       this.offset = 0;
       return;
     }
@@ -174,9 +174,11 @@ export class TypeCoach extends LitElement {
         ><!--anti space
         --><span class="todo">${todo}</span>
       </div>
-      Score: ${this.score()}/200. Doorsnee tijd
-      tussen aanslagen: ${this.median ? Math.round(this.median) : "-"} ms.
-      Gemiddeld aantal aanslagen per minuut:
+      Precisie: ${
+      this.#accuracy().toPrecision(1)
+    }% (doel: 99,5%). Doorsnee tijd tussen aanslagen:
+      ${this.median ? Math.round(this.median) : "-"} ms. Gemiddeld aantal
+      aanslagen per minuut:
       ${
       this.totalTime
         ? Math.round((6e4 * this.strokeCount) / this.totalTime)
@@ -184,10 +186,9 @@ export class TypeCoach extends LitElement {
     }.`;
   }
 
-  score() {
-    return Math.round(
-      Math.min(this.strokeCount, 1000) /
-        (1 + this.errors.filter((s) => this.strokeCount - s < 1000).length),
+  #accuracy() {
+    return (
+      100 - this.errors.filter((s) => this.strokeCount - s < 500).length / 5
     );
   }
 }
