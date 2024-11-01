@@ -136,8 +136,8 @@ export class TypeCoach extends LitElement {
     e.preventDefault();
     const deltaTime = e.timeStamp - this.__timeStamp;
     // store correct presses per minute
-    this.__median.add(deltaTime);
     if (deltaTime < 1000) {
+      this.__median.add(deltaTime);
       this.totalTime += deltaTime;
       this.strokeCount++;
     }
@@ -145,7 +145,7 @@ export class TypeCoach extends LitElement {
     this.median = this.__median.get();
     this.keys[this.offset] = e.key;
     if (this.current[this.offset] !== e.key) {
-      this.errors.push(this.strokeCount);
+      this.errors.push(this.totalTime);
       TypeCoach.#BEEP.play();
       return;
     }
@@ -154,8 +154,9 @@ export class TypeCoach extends LitElement {
     if (this.offset < this.current.length) {
       return;
     }
+    this.offset = 0;
+    this.errors = this.errors.filter((t) => this.totalTime - t > 400);
     if (this.#accuracy() < 99.5) {
-      this.offset = 0;
       return;
     }
     this.current = generate();
@@ -174,11 +175,9 @@ export class TypeCoach extends LitElement {
         ><!--anti space
         --><span class="todo">${todo}</span>
       </div>
-      Precisie: ${
-      this.#accuracy().toPrecision(1)
-    }% (doel: 99,5%). Doorsnee tijd tussen aanslagen:
-      ${this.median ? Math.round(this.median) : "-"} ms. Gemiddeld aantal
-      aanslagen per minuut:
+      Precisie: ${this.#accuracy().toPrecision(3)}% per 40 seconde (doel: 99,5%). Doorsnee tijd
+      tussen aanslagen: ${this.median ? Math.round(this.median) : "-"} ms.
+      Gemiddeld aantal aanslagen per minuut:
       ${
       this.totalTime
         ? Math.round((6e4 * this.strokeCount) / this.totalTime)
@@ -187,9 +186,9 @@ export class TypeCoach extends LitElement {
   }
 
   #accuracy() {
-    return (
-      100 - this.errors.filter((s) => this.strokeCount - s < 500).length / 5
-    );
+    // time based accuracy: get down to under 1 mistake per 80s. typing faster doesn't help anymore
+    return 100 -
+      this.errors.filter((t) => this.totalTime - t < 4e5).length / 10;
   }
 }
 

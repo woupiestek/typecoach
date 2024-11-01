@@ -1,5 +1,15 @@
 # TypeCoach
 
+## 2024-11-01
+
+### time based
+
+Something like errors per minute. I think the idea is 150 strokes p/m but only
+one error for 200 strokes. I.e. 80s per error. Based on the total time measure,
+that ignores breaks.
+
+Now it would be nice if the error rate decreased more smoothly
+
 ## 2024-10-28
 
 I cannot understand how bad I am at typing. I've been at it for a year, and know
