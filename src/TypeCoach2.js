@@ -122,6 +122,7 @@ export class TypeCoach extends LitElement {
     this.offset = 0;
     this.strokeCount = 0;
     this.totalTime = 0;
+    this.acc = 0;
   }
 
   connectedCallback() {
@@ -146,6 +147,7 @@ export class TypeCoach extends LitElement {
     this.keys[this.offset] = e.key;
     if (this.current[this.offset] !== e.key) {
       this.errors.push(this.totalTime);
+      this.acc += this.totalTime;
       TypeCoach.#BEEP.play();
       return;
     }
@@ -156,7 +158,7 @@ export class TypeCoach extends LitElement {
     }
     this.offset = 0;
     this.errors = this.errors.filter((t) => this.totalTime - t > 400);
-    if (this.#accuracy() < 99.5) {
+    if (this.#rate() > .75) {
       return;
     }
     this.current = generate();
@@ -175,20 +177,34 @@ export class TypeCoach extends LitElement {
         ><!--anti space
         --><span class="todo">${todo}</span>
       </div>
-      Precisie: ${this.#accuracy().toPrecision(3)}% per 40 seconde (doel: 99,5%). Doorsnee tijd
-      tussen aanslagen: ${this.median ? Math.round(this.median) : "-"} ms.
-      Gemiddeld aantal aanslagen per minuut:
-      ${
+      <ul>
+        <li>
+          Fouten per minuut: ${
+      this.#rate().toPrecision(3).replace(".", ",")
+    } (doel: < 0,75).
+        </li>
+        <li>
+          Doorsnee tijd tussen aanslagen:
+          ${this.median ? Math.round(this.median) : "-"} ms.
+        </li>
+        <li>
+          Gemiddeld aantal aanslagen per minuut:
+          ${
       this.totalTime
         ? Math.round((6e4 * this.strokeCount) / this.totalTime)
         : "-"
-    }.`;
+    }.
+        </li><li>Experiment: ${this.#rate2().toPrecision(3)}</li>
+      </ul>`;
   }
 
-  #accuracy() {
-    // time based accuracy: get down to under 1 mistake per 80s. typing faster doesn't help anymore
-    return 100 -
-      this.errors.filter((t) => this.totalTime - t < 4e5).length / 10;
+  #rate() {
+    return this.errors.filter((t) => this.totalTime - t < 3e5).length / 5;
+  }
+
+  #rate2() {
+    if (this.totalTime === 0) return 0;
+    return 12e4 * this.acc / (this.totalTime * this.totalTime);
   }
 }
 
