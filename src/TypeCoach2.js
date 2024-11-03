@@ -157,8 +157,8 @@ export class TypeCoach extends LitElement {
       return;
     }
     this.offset = 0;
-    this.errors = this.errors.filter((t) => this.totalTime - t > 400);
-    if (this.#rate() > .75) {
+    this.errors = this.errors.filter((t) => this.totalTime - t < 3e5);
+    if (this.#rate() > 0.75) {
       return;
     }
     this.current = generate();
@@ -179,9 +179,8 @@ export class TypeCoach extends LitElement {
       </div>
       <ul>
         <li>
-          Fouten per minuut: ${
-      this.#rate().toPrecision(3).replace(".", ",")
-    } (doel: < 0,75).
+          Fouten per minuut: ${this.#rate().toPrecision(3).replace(".", ",")}
+          (doel: < 0,75).
         </li>
         <li>
           Doorsnee tijd tussen aanslagen:
@@ -194,7 +193,8 @@ export class TypeCoach extends LitElement {
         ? Math.round((6e4 * this.strokeCount) / this.totalTime)
         : "-"
     }.
-        </li><li>Experiment: ${this.#rate2().toPrecision(3)}</li>
+        </li>
+        <li>Experiment: ${this.#rate2().toPrecision(3)}</li>
       </ul>`;
   }
 
@@ -204,7 +204,7 @@ export class TypeCoach extends LitElement {
 
   #rate2() {
     if (this.totalTime === 0) return 0;
-    return 12e4 * this.acc / (this.totalTime * this.totalTime);
+    return (12e4 * this.acc) / (this.totalTime * this.totalTime);
   }
 }
 
