@@ -67,7 +67,8 @@ class Beep {
   }
 }
 
-const WORDS_PER_EXERCISE = 32;
+const TEST_PERIOD = 3.2e5;
+const MINUTE = 6e4 / TEST_PERIOD;
 
 export class TypeCoach extends LitElement {
   static properties = {
@@ -157,7 +158,7 @@ export class TypeCoach extends LitElement {
       return;
     }
     this.offset = 0;
-    this.errors = this.errors.filter((t) => this.totalTime - t < 3e5);
+    this.errors = this.errors.filter((t) => this.totalTime - t < TEST_PERIOD);
     if (this.#rate() > 0.75) {
       return;
     }
@@ -199,12 +200,15 @@ export class TypeCoach extends LitElement {
   }
 
   #rate() {
-    return this.errors.filter((t) => this.totalTime - t < 3e5).length / 5;
+    return (
+      this.errors.filter((t) => this.totalTime - t < TEST_PERIOD).length *
+      MINUTE
+    );
   }
 
   #rate2() {
     if (this.totalTime === 0) return 0;
-    return (12e4 * this.acc) / (this.totalTime * this.totalTime);
+    return (6e4 * this.acc) / this.totalTime;
   }
 }
 
