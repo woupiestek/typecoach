@@ -74,6 +74,7 @@ export class TypeCoach extends LitElement {
   static properties = {
     current: { type: String },
     offset: { type: Number },
+    totalTime: { type: Number },
     median: { type: Number },
   };
 
@@ -123,7 +124,6 @@ export class TypeCoach extends LitElement {
     this.offset = 0;
     this.strokeCount = 0;
     this.totalTime = 0;
-    this.acc = 0;
   }
 
   connectedCallback() {
@@ -148,7 +148,6 @@ export class TypeCoach extends LitElement {
     this.keys[this.offset] = e.key;
     if (this.current[this.offset] !== e.key) {
       this.errors.push(this.totalTime);
-      this.acc += this.totalTime;
       TypeCoach.#BEEP.play();
       return;
     }
@@ -183,6 +182,7 @@ export class TypeCoach extends LitElement {
           Fouten per minuut: ${this.#rate().toPrecision(3).replace(".", ",")}
           (doel: < 0,75).
         </li>
+        <li>Tijd sinds laatste fout: ${this.#msSinceLastError()} ms (doel > 80000 ms)</li>
         <li>
           Doorsnee tijd tussen aanslagen:
           ${this.median ? Math.round(this.median) : "-"} ms.
@@ -194,9 +194,7 @@ export class TypeCoach extends LitElement {
         ? Math.round((6e4 * this.strokeCount) / this.totalTime)
         : "-"
     }.
-        </li>
-        <li>Experiment: ${this.#rate2().toPrecision(3)}</li>
-      </ul>`;
+        </li>`;
   }
 
   #rate() {
@@ -206,9 +204,9 @@ export class TypeCoach extends LitElement {
     );
   }
 
-  #rate2() {
-    if (this.totalTime === 0) return 0;
-    return (6e4 * this.acc) / this.totalTime;
+  #msSinceLastError() {
+    if (this.errors.length == 0) return "-";
+    return Math.round(this.totalTime - this.errors[this.errors.length - 1]);
   }
 }
 
