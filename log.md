@@ -1,5 +1,11 @@
 # TypeCoach
 
+## 2024-11-07
+
+Made several changes now, and I am starting to feel good about this again. As if
+I am learning again, instead of fialed the same way over and over. Take on new
+challenges. I should just be more patient when thing go badly at the start.
+
 ## 2024-11-01
 
 ### time based

@@ -182,7 +182,7 @@ export class TypeCoach extends LitElement {
           Fouten per minuut: ${this.#rate().toPrecision(3).replace(".", ",")}
           (doel: < 0,75).
         </li>
-        <li>Tijd sinds laatste fout: ${this.#msSinceLastError()} ms (doel > 80000 ms)</li>
+        <li>Tijd sinds laatste fout: ${this.#msSinceLastError()} ms</li>
         <li>
           Doorsnee tijd tussen aanslagen:
           ${this.median ? Math.round(this.median) : "-"} ms.
@@ -194,7 +194,8 @@ export class TypeCoach extends LitElement {
         ? Math.round((6e4 * this.strokeCount) / this.totalTime)
         : "-"
     }.
-        </li>`;
+        </li>
+      </ul>`;
   }
 
   #rate() {
@@ -205,8 +206,9 @@ export class TypeCoach extends LitElement {
   }
 
   #msSinceLastError() {
-    if (this.errors.length == 0) return "-";
-    return Math.round(this.totalTime - this.errors[this.errors.length - 1]);
+    return Math.round(
+      this.totalTime - (this.errors[this.errors.length - 1] || 0),
+    );
   }
 }
 
