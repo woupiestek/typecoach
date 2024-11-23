@@ -69,6 +69,7 @@ class Beep {
 
 const TEST_PERIOD = 3.2e5;
 const MINUTE = 6e4 / TEST_PERIOD;
+const MAX_TIME = 1.8e6;
 
 export class TypeCoach extends LitElement {
   static properties = {
@@ -124,6 +125,7 @@ export class TypeCoach extends LitElement {
     this.offset = 0;
     this.strokeCount = 0;
     this.totalTime = 0;
+    this.timeLeft = MAX_TIME;
   }
 
   connectedCallback() {
@@ -141,6 +143,7 @@ export class TypeCoach extends LitElement {
     if (deltaTime < 1000) {
       this.__median.add(deltaTime);
       this.totalTime += deltaTime;
+      this.timeLeft -= deltaTime;
       this.strokeCount++;
     }
     this.__timeStamp = e.timeStamp;
@@ -195,6 +198,7 @@ export class TypeCoach extends LitElement {
         : "-"
     }.
         </li>
+        <li>Resterende tijd: ${Math.round(this.timeLeft/1000)} seconden</li>
       </ul>`;
   }
 
