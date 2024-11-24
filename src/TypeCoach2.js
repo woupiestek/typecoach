@@ -77,6 +77,7 @@ export class TypeCoach extends LitElement {
     offset: { type: Number },
     totalTime: { type: Number },
     median: { type: Number },
+    penalties: { type: Number },
   };
 
   static styles = [
@@ -119,32 +120,26 @@ export class TypeCoach extends LitElement {
     this.__median = new RunningMedian();
     this.__timeStamp = 0;
     this.current = "";
+    this.current = generate();
     this.errors = [];
     this.keys = [];
     this.median = 0;
     this.offset = 0;
+    this.penalties = 0;
     this.strokeCount = 0;
     this.totalTime = 0;
-    this.timeLeft = MAX_TIME;
-  }
-
-  connectedCallback() {
-    super.connectedCallback();
-    this.current = generate();
-    this.errors = [];
-    this.keys = [];
-    this.offset = 0;
   }
 
   #onKey(e) {
     e.preventDefault();
+    this.strokeCount++;
     const deltaTime = e.timeStamp - this.__timeStamp;
-    // store correct presses per minute
+    // store strokes per minute
     if (deltaTime < 1000) {
       this.__median.add(deltaTime);
       this.totalTime += deltaTime;
-      this.timeLeft -= deltaTime;
-      this.strokeCount++;
+    } else {
+      this.totalTime += 1000;
     }
     this.__timeStamp = e.timeStamp;
     this.median = this.__median.get();
@@ -154,7 +149,6 @@ export class TypeCoach extends LitElement {
       TypeCoach.#BEEP.play();
       return;
     }
-
     this.offset++;
     if (this.offset < this.current.length) {
       return;
@@ -162,6 +156,7 @@ export class TypeCoach extends LitElement {
     this.offset = 0;
     this.errors = this.errors.filter((t) => this.totalTime - t < TEST_PERIOD);
     if (this.#rate() > 0.75) {
+      this.penalties++;
       return;
     }
     this.current = generate();
@@ -185,7 +180,12 @@ export class TypeCoach extends LitElement {
           Fouten per minuut: ${this.#rate().toPrecision(3).replace(".", ",")}
           (doel: < 0,75).
         </li>
-        <li>Tijd sinds laatste fout: ${this.#msSinceLastError()} ms</li>
+        <li>Strafrondes: ${this.penalties}.</li>
+        <li>
+          Resterende tijd: ${Math.round((MAX_TIME - this.totalTime) / 1000)}
+          seconden.
+        </li>
+        <li>Tijd sinds laatste fout: ${this.#secondsSinceLastError()} seconden.</li>
         <li>
           Doorsnee tijd tussen aanslagen:
           ${this.median ? Math.round(this.median) : "-"} ms.
@@ -198,7 +198,6 @@ export class TypeCoach extends LitElement {
         : "-"
     }.
         </li>
-        <li>Resterende tijd: ${Math.round(this.timeLeft/1000)} seconden</li>
       </ul>`;
   }
 
@@ -209,9 +208,9 @@ export class TypeCoach extends LitElement {
     );
   }
 
-  #msSinceLastError() {
+  #secondsSinceLastError() {
     return Math.round(
-      this.totalTime - (this.errors[this.errors.length - 1] || 0),
+      (this.totalTime - (this.errors[this.errors.length - 1] || 0))/1000,
     );
   }
 }
