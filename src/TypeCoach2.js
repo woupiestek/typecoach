@@ -145,7 +145,9 @@ export class TypeCoach extends LitElement {
     this.median = this.__median.get();
     this.keys[this.offset] = e.key;
     if (this.current[this.offset] !== e.key) {
-      this.errors.push(this.totalTime);
+      if (this.totalTime - (this.errors[this.errors.length - 1] || 0) > 500) {
+        this.errors.push(this.totalTime);
+      }
       TypeCoach.#BEEP.play();
       return;
     }
@@ -185,7 +187,9 @@ export class TypeCoach extends LitElement {
           Resterende tijd: ${Math.round((MAX_TIME - this.totalTime) / 1000)}
           seconden.
         </li>
-        <li>Tijd sinds laatste fout: ${this.#secondsSinceLastError()} seconden.</li>
+        <li>
+          Tijd sinds laatste fout: ${this.#secondsSinceLastError()} seconden.
+        </li>
         <li>
           Doorsnee tijd tussen aanslagen:
           ${this.median ? Math.round(this.median) : "-"} ms.
@@ -210,7 +214,7 @@ export class TypeCoach extends LitElement {
 
   #secondsSinceLastError() {
     return Math.round(
-      (this.totalTime - (this.errors[this.errors.length - 1] || 0))/1000,
+      (this.totalTime - (this.errors[this.errors.length - 1] || 0)) / 1000,
     );
   }
 }
