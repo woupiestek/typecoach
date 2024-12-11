@@ -8,7 +8,7 @@ function sample(array) {
 
 function generate() {
   let string = sample(words);
-  while (string.length < 200) {
+  while (string.length < 100) {
     string += " " + sample(words);
   }
   return string;
