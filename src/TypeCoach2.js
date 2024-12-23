@@ -117,37 +117,44 @@ export class TypeCoach extends LitElement {
 
   constructor() {
     super();
+    // compute median time between strokes
     this.__median = new RunningMedian();
     this.__timeStamp = 0;
-    this.current = "";
+    // repeat if errors are make
+    this.__erred = false;
+    // current string to type
     this.current = generate();
+    // timestamps of errors
     this.errors = [];
-    this.keys = [];
+    // median time between strokes
     this.median = 0;
+    // offset in current string
     this.offset = 0;
+    // number of penalty rounds
     this.penalties = 0;
     this.strokeCount = 0;
+    // 'in game' total time
     this.totalTime = 0;
   }
 
   #onKey(e) {
     e.preventDefault();
     this.strokeCount++;
-    const deltaTime = e.timeStamp - this.__timeStamp;
-    // store strokes per minute
-    if (deltaTime < 1000) {
+    // ignore time at the start of the exercise
+    if (this.offset) {
+      const deltaTime = e.timeStamp - this.__timeStamp;
       this.__median.add(deltaTime);
       this.totalTime += deltaTime;
-    } else {
-      this.totalTime += 1000;
+      this.median = this.__median.get();
     }
     this.__timeStamp = e.timeStamp;
-    this.median = this.__median.get();
-    this.keys[this.offset] = e.key;
+    // check if the key is correct
     if (this.current[this.offset] !== e.key) {
       if (this.totalTime - (this.errors[this.errors.length - 1] || 0) > 500) {
         this.errors.push(this.totalTime);
       }
+      this.__erred = true;
+      // annoy user with a beep
       TypeCoach.#BEEP.play();
       return;
     }
@@ -156,8 +163,11 @@ export class TypeCoach extends LitElement {
       return;
     }
     this.offset = 0;
+    // forget errors older than TEST_PERIOD
     this.errors = this.errors.filter((t) => this.totalTime - t < TEST_PERIOD);
-    if (this.#rate() > 0.75) {
+    // penalty round if too many errors
+    if (this.__erred || this.#rate() > 0.75) {
+      this.__erred = false;
       this.penalties++;
       return;
     }
@@ -165,8 +175,14 @@ export class TypeCoach extends LitElement {
   }
 
   render() {
-    const done = this.current.substring(0, this.offset);
-    const todo = this.current.substring(this.offset);
+    // replace spaces to show line breaks
+    const done = this.current
+      .substring(0, this.offset)
+      .replaceAll(" ", "\u200B\u00A0");
+    const todo = this.current.substring(this.offset).replaceAll(
+      " ",
+      "\u200B\u00A0",
+    );
     return html` <div
         class="main"
         autofocus
@@ -180,9 +196,9 @@ export class TypeCoach extends LitElement {
       <ul>
         <li>
           Fouten per minuut: ${this.#rate().toPrecision(3).replace(".", ",")}
-          (doel: < 0,75).
+          (doel < 0,75).
         </li>
-        <li>Strafrondes: ${this.penalties}.</li>
+        <li>Strafrondes: ${this.penalties} (doel < 23).</li>
         <li>
           Resterende tijd: ${Math.round((MAX_TIME - this.totalTime) / 1000)}
           seconden.

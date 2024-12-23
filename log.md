@@ -1,5 +1,19 @@
 # TypeCoach
 
+## 2024-12-23
+
+### updates
+
+- Instead of truncating time at every point, just ignore any breaks at the start
+  of an exercise.
+- Show linebreaks by substituting spaces with "\u200B\u00A0": zero width space
+  before non breaking space.
+- Always repeat when errors are made, only repeat more often if the rate is
+  getting to high.
+- If errors are made at a rate of 0.75 per minute over 30 minutes, and every
+  error causes at least one penalty round, then 22.5 is the 'penalty budget',
+  the amount the user can afford.
+
 ## 2024-11-07
 
 Made several changes now, and I am starting to feel good about this again. As if
