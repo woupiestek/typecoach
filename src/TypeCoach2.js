@@ -14,35 +14,6 @@ function generate() {
   return string;
 }
 
-class RunningMedian {
-  #lower = new Heap();
-  #higher = new Heap();
-  #balance() {
-    return this.#lower.size() - this.#higher.size();
-  }
-  add(value) {
-    if (value < this.#higher.head()) {
-      this.#lower.add(value, value);
-      while (this.#balance() > 1) {
-        const v = this.#lower.pop();
-        this.#higher.add(-v, v);
-      }
-    } else {
-      this.#higher.add(-value, value);
-      while (this.#balance() < 0) {
-        const v = this.#higher.pop();
-        this.#lower.add(v, v);
-      }
-    }
-  }
-  get() {
-    if (this.#balance() > 0) {
-      return this.#lower.head();
-    }
-    return (this.#lower.head() + this.#higher.head()) / 2;
-  }
-}
-
 class Beep {
   #context = new AudioContext();
   #on = false;
@@ -76,7 +47,6 @@ export class TypeCoach extends LitElement {
     current: { type: String },
     offset: { type: Number },
     totalTime: { type: Number },
-    median: { type: Number },
     penalties: { type: Number },
   };
 
@@ -117,8 +87,6 @@ export class TypeCoach extends LitElement {
 
   constructor() {
     super();
-    // compute median time between strokes
-    this.__median = new RunningMedian();
     this.__timeStamp = 0;
     // repeat if errors are make
     this.__erred = false;
@@ -126,8 +94,6 @@ export class TypeCoach extends LitElement {
     this.current = generate();
     // timestamps of errors
     this.errors = [];
-    // median time between strokes
-    this.median = 0;
     // offset in current string
     this.offset = 0;
     // number of penalty rounds
@@ -139,15 +105,6 @@ export class TypeCoach extends LitElement {
 
   #onKey(e) {
     e.preventDefault();
-    this.strokeCount++;
-    // ignore time at the start of the exercise
-    if (this.offset) {
-      const deltaTime = e.timeStamp - this.__timeStamp;
-      this.__median.add(deltaTime);
-      this.totalTime += deltaTime;
-      this.median = this.__median.get();
-    }
-    this.__timeStamp = e.timeStamp;
     // check if the key is correct
     if (this.current[this.offset] !== e.key) {
       if (this.totalTime - (this.errors[this.errors.length - 1] || 0) > 500) {
@@ -158,7 +115,13 @@ export class TypeCoach extends LitElement {
       TypeCoach.#BEEP.play();
       return;
     }
+    // ignore time at the start of the exercise
+    if (this.offset) {
+      this.strokeCount++;
+      this.totalTime += e.timeStamp - this.__timeStamp;
+    }
     this.offset++;
+    this.__timeStamp = e.timeStamp;
     if (this.offset < this.current.length) {
       return;
     }
@@ -205,10 +168,6 @@ export class TypeCoach extends LitElement {
         </li>
         <li>
           Tijd sinds laatste fout: ${this.#secondsSinceLastError()} seconden.
-        </li>
-        <li>
-          Doorsnee tijd tussen aanslagen:
-          ${this.median ? Math.round(this.median) : "-"} ms.
         </li>
         <li>
           Gemiddeld aantal aanslagen per minuut:
