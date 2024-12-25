@@ -94,17 +94,24 @@ export class TypeCoach extends LitElement {
     this.current = generate();
     // timestamps of errors
     this.errors = [];
+    this.strokes = [];
     // offset in current string
     this.offset = 0;
     // number of penalty rounds
     this.penalties = 0;
-    this.strokeCount = 0;
     // 'in game' total time
     this.totalTime = 0;
   }
 
   #onKey(e) {
     e.preventDefault();
+
+    if (this.offset) {
+      this.totalTime += e.timeStamp - this.__timeStamp;
+      this.strokes.push(this.totalTime);
+    }
+    this.__timeStamp = e.timeStamp;
+
     // check if the key is correct
     if (this.current[this.offset] !== e.key) {
       if (this.totalTime - (this.errors[this.errors.length - 1] || 0) > 500) {
@@ -115,21 +122,19 @@ export class TypeCoach extends LitElement {
       TypeCoach.#BEEP.play();
       return;
     }
-    // ignore time at the start of the exercise
-    if (this.offset) {
-      this.strokeCount++;
-      this.totalTime += e.timeStamp - this.__timeStamp;
-    }
     this.offset++;
-    this.__timeStamp = e.timeStamp;
     if (this.offset < this.current.length) {
       return;
     }
     this.offset = 0;
+    // forget strokes older than TEST_PERIOD
+    this.strokes = this.strokes.filter(
+      (t) => this.totalTime - t < TEST_PERIOD,
+    );
     // forget errors older than TEST_PERIOD
     this.errors = this.errors.filter((t) => this.totalTime - t < TEST_PERIOD);
     // penalty round if too many errors
-    if (this.__erred || this.#rate() > 0.75) {
+    if (this.__erred || this.#errorRate() > 0.75) {
       this.__erred = false;
       this.penalties++;
       return;
@@ -142,10 +147,9 @@ export class TypeCoach extends LitElement {
     const done = this.current
       .substring(0, this.offset)
       .replaceAll(" ", "\u200B\u00A0");
-    const todo = this.current.substring(this.offset).replaceAll(
-      " ",
-      "\u200B\u00A0",
-    );
+    const todo = this.current
+      .substring(this.offset)
+      .replaceAll(" ", "\u200B\u00A0");
     return html` <div
         class="main"
         autofocus
@@ -158,8 +162,8 @@ export class TypeCoach extends LitElement {
       </div>
       <ul>
         <li>
-          Fouten per minuut: ${this.#rate().toPrecision(3).replace(".", ",")}
-          (doel < 0,75).
+          Fouten per minuut:
+          ${this.#errorRate().toPrecision(3).replace(".", ",")} (doel < 0,75).
         </li>
         <li>Strafrondes: ${this.penalties} (doel < 23).</li>
         <li>
@@ -170,17 +174,20 @@ export class TypeCoach extends LitElement {
           Tijd sinds laatste fout: ${this.#secondsSinceLastError()} seconden.
         </li>
         <li>
-          Gemiddeld aantal aanslagen per minuut:
-          ${
-      this.totalTime
-        ? Math.round((6e4 * this.strokeCount) / this.totalTime)
-        : "-"
-    }.
+          Aanslagen per minuut:
+          ${this.#successRate().toPrecision(3).replace(".", ",")} (doel ≥ 150).
         </li>
       </ul>`;
   }
 
-  #rate() {
+  #successRate() {
+    return (
+      this.strokes.filter((t) => this.totalTime - t < TEST_PERIOD).length *
+      MINUTE
+    );
+  }
+
+  #errorRate() {
     return (
       this.errors.filter((t) => this.totalTime - t < TEST_PERIOD).length *
       MINUTE
