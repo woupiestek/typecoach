@@ -127,9 +127,9 @@ export class TypeCoach extends LitElement {
       return;
     }
     this.offset = 0;
-    // forget strokes older than TEST_PERIOD
+    // forget strokes older than a minute
     this.strokes = this.strokes.filter(
-      (t) => this.totalTime - t < TEST_PERIOD,
+      (t) => this.totalTime - t < 6e4,
     );
     // forget errors older than TEST_PERIOD
     this.errors = this.errors.filter((t) => this.totalTime - t < TEST_PERIOD);
@@ -182,8 +182,7 @@ export class TypeCoach extends LitElement {
 
   #successRate() {
     return (
-      this.strokes.filter((t) => this.totalTime - t < TEST_PERIOD).length *
-      MINUTE
+      this.strokes.filter((t) => this.totalTime - t < 6e4).length
     );
   }
 
