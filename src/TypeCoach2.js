@@ -1,5 +1,4 @@
 import { css, html, LitElement } from "lit";
-import { Heap } from "./Heap";
 import { words } from "./words";
 
 function sample(array) {
@@ -76,10 +75,6 @@ export class TypeCoach extends LitElement {
       .done {
         background: #339933;
       }
-      .errors {
-        display: flex;
-        flex-wrap: wrap;
-      }
     `,
   ];
 
@@ -87,14 +82,10 @@ export class TypeCoach extends LitElement {
 
   constructor() {
     super();
-    this.__timeStamp = 0;
-    // repeat if errors are make
-    this.__erred = false;
     // current string to type
     this.current = generate();
     // timestamps of errors
     this.errors = [];
-    this.strokes = [];
     // offset in current string
     this.offset = 0;
     // number of penalty rounds
@@ -103,21 +94,28 @@ export class TypeCoach extends LitElement {
     this.totalTime = 0;
   }
 
+  // repeat if errors are make
+  #erred = false;
+  #start = 0;
+  #strokeRate = 0;
+  #timeStamp = 0;
+
   #onKey(e) {
     e.preventDefault();
 
     if (this.offset) {
-      this.totalTime += e.timeStamp - this.__timeStamp;
-      this.strokes.push(this.totalTime);
+      this.totalTime += e.timeStamp - this.#timeStamp;
+    } else {
+      this.#start = e.timeStamp;
     }
-    this.__timeStamp = e.timeStamp;
+    this.#timeStamp = e.timeStamp;
 
     // check if the key is correct
     if (this.current[this.offset] !== e.key) {
       if (this.totalTime - (this.errors[this.errors.length - 1] || 0) > 500) {
         this.errors.push(this.totalTime);
       }
-      this.__erred = true;
+      this.#erred = true;
       // annoy user with a beep
       TypeCoach.#BEEP.play();
       return;
@@ -126,16 +124,14 @@ export class TypeCoach extends LitElement {
     if (this.offset < this.current.length) {
       return;
     }
+    this.#strokeRate = ((this.current.length - 1) * 6e4) /
+      (e.timeStamp - this.#start);
     this.offset = 0;
-    // forget strokes older than a minute
-    this.strokes = this.strokes.filter(
-      (t) => this.totalTime - t < 6e4,
-    );
     // forget errors older than TEST_PERIOD
     this.errors = this.errors.filter((t) => this.totalTime - t < TEST_PERIOD);
     // penalty round if too many errors
-    if (this.__erred || this.#errorRate() > 0.75) {
-      this.__erred = false;
+    if (this.#erred || this.errors.length > 4) {
+      this.#erred = false;
       this.penalties++;
       return;
     }
@@ -171,31 +167,16 @@ export class TypeCoach extends LitElement {
           seconden.
         </li>
         <li>
-          Tijd sinds laatste fout: ${this.#secondsSinceLastError()} seconden.
-        </li>
-        <li>
           Aanslagen per minuut:
-          ${this.#successRate().toPrecision(3).replace(".", ",")} (doel ≥ 150).
+          ${this.#strokeRate.toPrecision(3).replace(".", ",")} (doel ≥ 150).
         </li>
       </ul>`;
-  }
-
-  #successRate() {
-    return (
-      this.strokes.filter((t) => this.totalTime - t < 6e4).length
-    );
   }
 
   #errorRate() {
     return (
       this.errors.filter((t) => this.totalTime - t < TEST_PERIOD).length *
       MINUTE
-    );
-  }
-
-  #secondsSinceLastError() {
-    return Math.round(
-      (this.totalTime - (this.errors[this.errors.length - 1] || 0)) / 1000,
     );
   }
 }
