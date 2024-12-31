@@ -97,8 +97,9 @@ export class TypeCoach extends LitElement {
   #strokeRate = 0;
   #timeStamp = 0;
 
-  #durations = [];
-  #errors = [];
+  // give user an optimistic head start
+  #durations = [3e5];
+  #errors = [0];
   #errorRate = 0;
 
   #onKey(e) {
@@ -116,9 +117,9 @@ export class TypeCoach extends LitElement {
       if (this.totalTime - this.#lastError > 500) {
         this.#lastError = this.totalTime;
         this.#errorCount++;
+        // annoy user with a beep
+        TypeCoach.#BEEP.play();
       }
-      // annoy user with a beep
-      TypeCoach.#BEEP.play();
       return;
     }
 
