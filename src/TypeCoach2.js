@@ -98,8 +98,8 @@ export class TypeCoach extends LitElement {
   #timeStamp = 0;
 
   // give user an optimistic head start
-  #durations = [3e5];
-  #errors = [0];
+  #durations = Array.from({ length: 7 }).map((_) => 4e4);
+  #errors = Array.from({ length: 7 }).map((_) => 0);
   #errorRate = 0;
 
   #onKey(e) {
