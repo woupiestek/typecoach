@@ -98,9 +98,23 @@ export class TypeCoach extends LitElement {
   #timeStamp = 0;
 
   // give user an optimistic head start
-  #durations = Array.from({ length: 7 }).map((_) => 4e4);
-  #errors = Array.from({ length: 7 }).map((_) => 0);
+  #durations = [];
+  #errors = [];
   #errorRate = 0;
+
+  #computeErrorRate() {
+    let errors = 0;
+    for (let d = 3e5, i = this.#errors.length - 1; i >= 0; i--) {
+      if (d < this.#durations[i]) {
+        // interpolate
+        errors += (this.#errors[i] * d) / this.#durations[i];
+        break;
+      }
+      d -= this.#durations[i];
+      errors += this.#errors[i];
+    }
+    this.#errorRate = errors / 5;
+  }
 
   #onKey(e) {
     e.preventDefault();
@@ -134,17 +148,7 @@ export class TypeCoach extends LitElement {
     this.#errors.push(this.#errorCount);
 
     this.#strokeRate = ((this.current.length - 1) * 6e4) / duration;
-
-    let d = 0,
-      errors = 0;
-    for (let i = this.#errors.length - 1; i >= 0; i--) {
-      d += this.#durations[i];
-      errors += this.#errors[i];
-      if (d > 3e5) {
-        break;
-      }
-    }
-    this.#errorRate = (errors / d) * 6e4;
+    this.#computeErrorRate();
 
     if (this.#errorCount || this.#errorRate > 0.75) {
       this.penalties++;
