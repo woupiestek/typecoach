@@ -5,12 +5,23 @@ function sample(array) {
   return array[(array.length * Math.random()) | 0];
 }
 
-function generate() {
+function generate1() {
   let string = sample(words);
   while (string.length < 100) {
     string += " " + sample(words);
   }
   return string;
+}
+
+const letters = Array.from({ length: 95 }).map((_, i) =>
+  String.fromCharCode(i + 32),
+);
+letters.push("\n");
+
+function generate() {
+  return Array.from({ length: 40 })
+    .map((_) => sample(letters))
+    .join("");
 }
 
 class Beep {
@@ -127,7 +138,11 @@ export class TypeCoach extends LitElement {
     this.#timeStamp = e.timeStamp;
 
     // check if the key is correct
-    if (this.current[this.offset] !== e.key) {
+    if (
+      this.current[this.offset] !== e.key &&
+      !(this.current[this.offset] === "\n" && e.key === "Enter")
+    ) {
+      console.log("error", e, this.current.charCodeAt(this.offset));
       if (this.totalTime - this.#lastError > 500) {
         this.#lastError = this.totalTime;
         this.#errorCount++;
@@ -162,10 +177,12 @@ export class TypeCoach extends LitElement {
     // replace spaces to show line breaks
     const done = this.current
       .substring(0, this.offset)
-      .replaceAll(" ", "\u200B\u00A0");
+      .replaceAll(" ", "\u200B\u00A0")
+      .replaceAll("\n", "\u23CE\u200B");
     const todo = this.current
       .substring(this.offset)
-      .replaceAll(" ", "\u200B\u00A0");
+      .replaceAll(" ", "\u200B\u00A0")
+      .replaceAll("\n", "\u23CE\u200B");
     return html` <div
         class="main"
         autofocus

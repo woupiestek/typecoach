@@ -1,5 +1,13 @@
 # TypeCoach
 
+## 2025-02-01
+
+### difficult letter exercises
+
+1. exercises with randomly selected letters intended to destroy flow
+2. perhaps tally errors per letter, to generate harder exercises
+3. same recipe though: repeat the exercise until perfect
+
 ## 2024-12-23
 
 ### updates
