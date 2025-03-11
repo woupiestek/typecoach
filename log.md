@@ -1,5 +1,13 @@
 # TypeCoach
 
+## 2025-03-12
+
+### back to full reset
+
+It feel better to just redo a string until typing it perfect. However, accuracy
+will now be measured accross exercises. No rule about repeating until the rate
+is down anymore.
+
 ## 2025-02-01
 
 ### difficult letter exercises

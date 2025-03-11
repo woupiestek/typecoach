@@ -5,23 +5,12 @@ function sample(array) {
   return array[(array.length * Math.random()) | 0];
 }
 
-function generate1() {
+function generate() {
   let string = sample(words);
   while (string.length < 100) {
     string += " " + sample(words);
   }
   return string;
-}
-
-const letters = Array.from({ length: 95 }).map((_, i) =>
-  String.fromCharCode(i + 32)
-);
-letters.push("\n");
-
-function generate() {
-  return Array.from({ length: 40 })
-    .map((_) => sample(letters))
-    .join("");
 }
 
 class Beep {
@@ -101,31 +90,9 @@ export class TypeCoach extends LitElement {
     this.totalTime = 0;
   }
 
-  // repeat if errors are make
-  #errorCount = 0;
-  #lastError = 0;
   #start = 0;
   #strokeRate = 0;
   #timeStamp = 0;
-
-  // give user an optimistic head start
-  #durations = [];
-  #errors = [];
-  #errorRate = 0;
-
-  #computeErrorRate() {
-    let errors = 0;
-    for (let d = 3e5, i = this.#errors.length - 1; i >= 0; i--) {
-      if (d < this.#durations[i]) {
-        // interpolate
-        errors += (this.#errors[i] * d) / this.#durations[i];
-        break;
-      }
-      d -= this.#durations[i];
-      errors += this.#errors[i];
-    }
-    this.#errorRate = errors / 5;
-  }
 
   #onKey(e) {
     e.preventDefault();
@@ -138,15 +105,14 @@ export class TypeCoach extends LitElement {
     this.#timeStamp = e.timeStamp;
 
     // check if the key is correct
-    if (
-      this.current[this.offset] !== e.key &&
-      !(this.current[this.offset] === "\n" && e.key === "Enter")
-    ) {
-      if (this.totalTime - this.#lastError > 500) {
-        this.#lastError = this.totalTime;
-        this.#errorCount++;
-        // annoy user with a beep
-        TypeCoach.#BEEP.play();
+    if (this.current[this.offset] !== e.key) {
+      // annoy user with a beep
+      TypeCoach.#BEEP.play();
+      this.penalties++;
+      if (this.offset) {
+        this.#strokeRate = ((this.offset - 1) * 6e4) /
+          (e.timeStamp - this.#start);
+        this.offset = 0;
       }
       return;
     }
@@ -155,33 +121,20 @@ export class TypeCoach extends LitElement {
     if (this.offset < this.current.length) {
       return;
     }
-    this.offset = 0;
-
-    const duration = e.timeStamp - this.#start;
-    this.#durations.push(duration);
-    this.#errors.push(this.#errorCount);
-
-    this.#strokeRate = ((this.current.length - 1) * 6e4) / duration;
-    this.#computeErrorRate();
-
-    if (this.#errorCount || this.#errorRate > 0.75) {
-      this.penalties++;
-      this.#errorCount = 0;
-      return;
-    }
+    this.#strokeRate = ((this.current.length - 1) * 6e4) /
+      (e.timeStamp - this.#start);
     this.current = generate();
+    this.offset = 0;
   }
 
   render() {
     // replace spaces to show line breaks
     const done = this.current
       .substring(0, this.offset)
-      .replaceAll(" ", "\u200B\u00A0")
-      .replaceAll("\n", "\u23CE\u200B");
+      .replaceAll(" ", "\u200B\u00A0");
     const todo = this.current
       .substring(this.offset)
-      .replaceAll(" ", "\u200B\u00A0")
-      .replaceAll("\n", "\u23CE\u200B");
+      .replaceAll(" ", "\u200B\u00A0");
     return html` <div
         class="main"
         autofocus
@@ -192,10 +145,16 @@ export class TypeCoach extends LitElement {
       </div>
       <ul>
         <li>
-          Fouten per minuut: ${this.#errorRate.toPrecision(3).replace(".", ",")}
+          Fouten per minuut:
+          ${
+      this.totalTime
+        ? ((6e4 * this.penalties) / this.totalTime)
+          .toPrecision(3)
+          .replace(".", ",")
+        : "-"
+    }
           (doel < 0,75).
         </li>
-        <li>Strafrondes: ${this.penalties} (doel < 23).</li>
         <li>
           Resterende tijd: ${Math.round((MAX_TIME - this.totalTime) / 1000)}
           seconden.
