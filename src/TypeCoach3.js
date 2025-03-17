@@ -5,10 +5,22 @@ function sample(array) {
   return array[(array.length * Math.random()) | 0];
 }
 
+function shuffle(array) {
+  for (let i = array.length - 1; i > 0; i--) {
+    const j = (i * Math.random()) | 0;
+    [array[i], array[j]] = [array[j], array[i]];
+  }
+}
+
 function generate() {
   let string = sample(words);
-  while (string.length < 100) {
-    string += " " + sample(words);
+  let s;
+  for (;;) {
+    s = sample(words);
+    if (s.length + string.length * 2 >= 200) {
+      break;
+    }
+    string += " " + s;
   }
   return string;
 }
@@ -78,12 +90,28 @@ export class TypeCoach extends LitElement {
 
   static #BEEP = new Beep();
 
+  // current batch of text strings
+  #input = [];
+  // next batch of test strings
+  #output = [];
+
+  #generate() {
+    if (!this.#input.length) {
+      this.#input = this.#output;
+      for (let i = this.#input.length; i < 5; i++) {
+        this.#input.push(generate());
+      }
+      shuffle(this.#input);
+      this.#output = [];
+    }
+    this.current = this.#input.pop();
+    this.offset = 0;
+  }
+
   constructor() {
     super();
     // current string to type
-    this.current = generate();
-    // offset in current string
-    this.offset = 0;
+    this.#generate();
     // number of penalty rounds
     this.penalties = 0;
     // 'in game' total time
@@ -99,6 +127,8 @@ export class TypeCoach extends LitElement {
 
     if (this.offset) {
       this.totalTime += e.timeStamp - this.#timeStamp;
+      this.#strokeRate =
+        ((this.offset - 1) * 6e4) / (e.timeStamp - this.#start);
     } else {
       this.#start = e.timeStamp;
     }
@@ -106,14 +136,16 @@ export class TypeCoach extends LitElement {
 
     // check if the key is correct
     if (this.current[this.offset] !== e.key) {
+      if (!this.offset) {
+        // forgive the first error
+        return;
+      }
       // annoy user with a beep
       TypeCoach.#BEEP.play();
       this.penalties++;
-      if (this.offset) {
-        this.#strokeRate = ((this.offset - 1) * 6e4) /
-          (e.timeStamp - this.#start);
-        this.offset = 0;
-      }
+      // do this one more often
+      this.#output.push(this.current);
+      this.offset = 0;
       return;
     }
 
@@ -121,10 +153,7 @@ export class TypeCoach extends LitElement {
     if (this.offset < this.current.length) {
       return;
     }
-    this.#strokeRate = ((this.current.length - 1) * 6e4) /
-      (e.timeStamp - this.#start);
-    this.current = generate();
-    this.offset = 0;
+    this.#generate();
   }
 
   render() {
@@ -146,13 +175,11 @@ export class TypeCoach extends LitElement {
       <ul>
         <li>
           Fouten per minuut:
-          ${
-      this.totalTime
-        ? ((6e4 * this.penalties) / this.totalTime)
-          .toPrecision(3)
-          .replace(".", ",")
-        : "-"
-    }
+          ${this.totalTime
+            ? ((6e4 * this.penalties) / this.totalTime)
+                .toPrecision(3)
+                .replace(".", ",")
+            : "-"}
           (doel < 0,75).
         </li>
         <li>
