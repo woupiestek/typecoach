@@ -98,7 +98,7 @@ export class TypeCoach extends LitElement {
   #generate() {
     if (!this.#input.length) {
       this.#input = this.#output;
-      for (let i = this.#input.length; i < 5; i++) {
+      for (let i = 0; i < 3; i++) {
         this.#input.push(generate());
       }
       shuffle(this.#input);
