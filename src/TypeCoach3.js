@@ -91,14 +91,14 @@ export class TypeCoach extends LitElement {
   static #BEEP = new Beep();
 
   // current batch of text strings
-  #input = [];
+  #input = [generate()];
   // next batch of test strings
   #output = [];
 
   #generate() {
     if (!this.#input.length) {
       this.#input = this.#output;
-      for (let i = 0; i < 3; i++) {
+      for (let i = 0, l = 1 + this.#input.length; i < l; i++) {
         this.#input.push(generate());
       }
       shuffle(this.#input);
@@ -190,6 +190,7 @@ export class TypeCoach extends LitElement {
           Aanslagen per minuut:
           ${this.#strokeRate.toPrecision(3).replace(".", ",")} (doel ≥ 150).
         </li>
+        <li>Wachtrij: ${this.#input.length + 2 * this.#output.length}</li>
       </ul>`;
   }
 }
