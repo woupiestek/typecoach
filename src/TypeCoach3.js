@@ -49,7 +49,7 @@ class Beep {
   }
 }
 
-const MAX_TIME = 1.8e6;
+const MAX_TIME = 1.5e6;
 
 export class TypeCoach extends LitElement {
   static properties = {
@@ -90,21 +90,11 @@ export class TypeCoach extends LitElement {
 
   static #BEEP = new Beep();
 
-  // current batch of text strings
-  #input = [generate()];
-  // next batch of test strings
-  #output = [];
+  // control future test texts
+  #stack = [];
 
   #generate() {
-    if (!this.#input.length) {
-      this.#input = this.#output;
-      for (let i = 0, l = 1 + this.#input.length; i < l; i++) {
-        this.#input.push(generate());
-      }
-      shuffle(this.#input);
-      this.#output = [];
-    }
-    this.current = this.#input.pop();
+    this.current = this.#stack.length ? this.#stack.pop() : generate();
     this.offset = 0;
   }
 
@@ -143,8 +133,8 @@ export class TypeCoach extends LitElement {
       // annoy user with a beep
       TypeCoach.#BEEP.play();
       this.penalties++;
-      // do this one more often
-      this.#output.push(this.current);
+      // do this one more often, after another test string
+      this.#stack.push(this.current, generate());
       this.offset = 0;
       return;
     }
@@ -190,7 +180,7 @@ export class TypeCoach extends LitElement {
           Aanslagen per minuut:
           ${this.#strokeRate.toPrecision(3).replace(".", ",")} (doel ≥ 150).
         </li>
-        <li>Wachtrij: ${this.#input.length + 2 * this.#output.length}</li>
+        <li>Wachtrij: ${this.#stack.length}</li>
       </ul>`;
   }
 }
