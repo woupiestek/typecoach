@@ -5,13 +5,6 @@ function sample(array) {
   return array[(array.length * Math.random()) | 0];
 }
 
-function shuffle(array) {
-  for (let i = array.length - 1; i > 0; i--) {
-    const j = (i * Math.random()) | 0;
-    [array[i], array[j]] = [array[j], array[i]];
-  }
-}
-
 function generate() {
   let string = sample(words);
   let s;
@@ -48,8 +41,6 @@ class Beep {
     });
   }
 }
-
-const MAX_TIME = 1.5e6;
 
 export class TypeCoach extends LitElement {
   static properties = {
@@ -146,6 +137,12 @@ export class TypeCoach extends LitElement {
     this.#generate();
   }
 
+  #time() {
+    const minutes = (this.totalTime / 60000) | 0;
+    const seconds = ((this.totalTime / 1000) | 0) % 60;
+    return `${("00" + minutes).slice(-2)}:${("00" + seconds).slice(-2)}`;
+  }
+
   render() {
     // replace spaces to show line breaks
     const done = this.current
@@ -172,15 +169,12 @@ export class TypeCoach extends LitElement {
             : "-"}
           (doel < 0,75).
         </li>
-        <li>
-          Resterende tijd: ${Math.round((MAX_TIME - this.totalTime) / 1000)}
-          seconden.
-        </li>
+        <li>Tijd: ${this.#time()}.</li>
         <li>
           Aanslagen per minuut:
           ${this.#strokeRate.toPrecision(3).replace(".", ",")} (doel ≥ 150).
         </li>
-        <li>Wachtrij: ${this.#stack.length}</li>
+        <li>Wachtrij: ${this.#stack.length}.</li>
       </ul>`;
   }
 }
